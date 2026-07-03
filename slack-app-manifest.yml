@@ -4,12 +4,12 @@ display_information:
   background_color: "#2c2d30"
 features:
   bot_user:
-    display_name: "AFK Bot"
+    display_name: "AFK bot"
     always_online: true
   slash_commands:
     - command: /afk
       description: "AFK bot: /afk <number> [comment] | back | lang [code] | wait @user"
-      usage_hint: "1.5 [comment] | back | lang ru|en|pl|uk|be|es | wait @user"
+      usage_hint: "N [comment] | back | lang ru|en|pl|uk|be|es | wait @user"
       should_escape: true
   interactivity:
     is_enabled: true
