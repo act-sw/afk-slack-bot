@@ -4,7 +4,7 @@ display_information:
   background_color: "#2c2d30"
 features:
   bot_user:
-    display_name: afkbot
+    display_name: "AFK Bot"
     always_online: true
   slash_commands:
     - command: /afk
