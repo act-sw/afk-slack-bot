@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO)
 
 async def main() -> None:
     config = Config()
-    app = AsyncApp(token=config.SLACK_BOT_TOKEN)
+    app = AsyncApp(token=config.SLACK_BOT_TOKEN, signing_secret=config.SLACK_SIGNING_SECRET)
     state = StateStore(config.STATE_FILE_PATH)
     queue = SingleWriterQueue()
     queue.start()

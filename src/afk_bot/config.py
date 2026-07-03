@@ -8,6 +8,7 @@ load_dotenv()
 class Config:
     SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
     SLACK_APP_TOKEN = os.environ["SLACK_APP_TOKEN"]
+    SLACK_SIGNING_SECRET = os.environ["SLACK_SIGNING_SECRET"]
     CANVAS_ID = os.environ["CANVAS_ID"]
     STATE_FILE_PATH = os.environ.get("STATE_FILE_PATH", "data/state.json")
     TIMEZONE = os.environ.get("TIMEZONE", "UTC")

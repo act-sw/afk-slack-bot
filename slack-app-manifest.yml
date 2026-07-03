@@ -1,0 +1,24 @@
+display_information:
+  name: AFK Bot
+  description: Отмечает AFK-статус в общем Canvas канала
+  background_color: "#2c2d30"
+features:
+  bot_user:
+    display_name: afkbot
+    always_online: true
+  slash_commands:
+    - command: /afk
+      description: Отметить, что ты отошёл
+      usage_hint: "1.5h [комментарий] | 90m | until 15:00"
+      should_escape: false
+    - command: /back
+      description: Отметить досрочное возвращение
+      should_escape: false
+oauth_config:
+  scopes:
+    bot:
+      - commands
+      - canvases:write
+settings:
+  socket_mode_enabled: true
+  token_rotation_enabled: false
