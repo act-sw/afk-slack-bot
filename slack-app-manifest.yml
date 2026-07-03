@@ -1,6 +1,6 @@
 display_information:
   name: AFK Bot
-  description: Отмечает AFK-статус в общем Canvas канала
+  description: Tracks AFK status on a shared channel Canvas
   background_color: "#2c2d30"
 features:
   bot_user:
@@ -8,8 +8,8 @@ features:
     always_online: true
   slash_commands:
     - command: /afk
-      description: "AFK: /afk <время> [коммент] | back | lang [код] | wait @user"
-      usage_hint: "1.5h [коммент] | back | lang ru|en|pl|uk | wait @user"
+      description: "AFK bot: /afk <time> [comment] | back | lang [code] | wait @user"
+      usage_hint: "1.5h [comment] | back | lang ru|en|pl|uk | wait @user"
       should_escape: true
   interactivity:
     is_enabled: true
