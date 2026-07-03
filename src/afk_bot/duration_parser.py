@@ -1,39 +1,39 @@
 import re
 from datetime import datetime, timedelta
 
-_DURATION_RE = re.compile(r"^(\d+(?:\.\d+)?)\s*(h|hour|hours|m|min|minutes)$", re.IGNORECASE)
-_UNTIL_RE = re.compile(r"^until\s+(\d{1,2}):(\d{2})$", re.IGNORECASE)
+_UNTIL_RE = re.compile(r"^until\s+(\d{1,2}):(\d{2})", re.IGNORECASE)
+_NUMBER_RE = re.compile(r"\d+(?:[.,]\d+)?")
+
+_HOURS_MAX = 12
 
 
-class ParseError(ValueError):
-    def __init__(self, text: str):
-        self.text = text
-        super().__init__(f"could not parse duration: {text!r}")
+def parse_afk_text(text: str, now: datetime) -> tuple[datetime | None, str]:
+    """Split free-form `/afk` text into an expected-return time and a comment.
 
-
-def parse_expected_return(text: str, now: datetime) -> datetime | None:
-    """Parse a duration/time expression into an absolute expected-return datetime.
-
-    Supported: "1.5h", "90m", "until 15:00". Returns None for open-ended AFK
-    (e.g. an empty string), meaning no expected return time.
+    - "until HH:MM ..." sets an absolute return time.
+    - Otherwise, the first number in the text is the duration: <=12 is hours,
+      >12 is minutes (comma or dot as decimal separator). Everything after
+      that number is the comment.
+    - No number at all means an open-ended AFK (no expected return time) and
+      the whole text becomes the comment.
     """
     text = text.strip()
     if not text:
-        return None
+        return None, ""
 
-    match = _DURATION_RE.match(text)
-    if match:
-        amount = float(match.group(1))
-        unit = match.group(2).lower()
-        minutes = amount * 60 if unit.startswith("h") else amount
-        return now + timedelta(minutes=minutes)
-
-    match = _UNTIL_RE.match(text)
-    if match:
-        hour, minute = int(match.group(1)), int(match.group(2))
+    until_match = _UNTIL_RE.match(text)
+    if until_match:
+        hour, minute = int(until_match.group(1)), int(until_match.group(2))
         candidate = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
         if candidate <= now:
             candidate += timedelta(days=1)
-        return candidate
+        return candidate, text[until_match.end() :].strip()
 
-    raise ParseError(text)
+    number_match = _NUMBER_RE.search(text)
+    if not number_match:
+        return None, text
+
+    value = float(number_match.group().replace(",", "."))
+    minutes = value * 60 if value <= _HOURS_MAX else value
+    comment = text[number_match.end() :].strip()
+    return now + timedelta(minutes=minutes), comment

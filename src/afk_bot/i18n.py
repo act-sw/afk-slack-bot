@@ -1,31 +1,60 @@
-SUPPORTED_LOCALES = ("ru", "en")
+SUPPORTED_LOCALES = ("ru", "en", "pl", "uk")
+
+LANGUAGE_NAMES = {
+    "ru": "русский",
+    "en": "English",
+    "pl": "polski",
+    "uk": "українська",
+}
 
 _STRINGS = {
     "ru": {
         "afk_confirmation": "Отмечено: отошёл ({duration}).",
         "afk_no_duration": "без указания времени",
-        "parse_error": "Не удалось распознать длительность: {text!r}",
         "back_confirmation": "С возвращением!",
         "back_not_afk": "Ты и не отмечался как отошедший.",
         "overdue_dm_text": "⏰ Ты должен был вернуться в {time}. Отметить возвращение?",
         "overdue_button_label": "Вернулся",
         "overdue_dm_resolved": "С возвращением! Отмечено автоматически по кнопке.",
-        "canvas_empty": "_Сейчас все на месте._",
-        "canvas_headers": ["Имя", "Ушёл в", "Вернётся ~", "Комментарий"],
-        "canvas_overdue_marker": "⏰ задержался",
+        "lang_set": "Язык бота установлен: {name}.",
+        "lang_current": "Текущий язык бота: {name}. Доступно: {options}.",
+        "lang_invalid": "Неизвестный язык: {input!r}. Доступно: {options}.",
     },
     "en": {
         "afk_confirmation": "Marked as away ({duration}).",
         "afk_no_duration": "no return time given",
-        "parse_error": "Could not parse duration: {text!r}",
         "back_confirmation": "Welcome back!",
         "back_not_afk": "You weren't marked as away.",
         "overdue_dm_text": "⏰ You were expected back at {time}. Mark yourself back?",
         "overdue_button_label": "I'm back",
         "overdue_dm_resolved": "Welcome back! Marked automatically via the button.",
-        "canvas_empty": "_Everyone's around._",
-        "canvas_headers": ["Name", "Left at", "Returns ~", "Comment"],
-        "canvas_overdue_marker": "⏰ overdue",
+        "lang_set": "Bot language set to: {name}.",
+        "lang_current": "Current bot language: {name}. Available: {options}.",
+        "lang_invalid": "Unknown language: {input!r}. Available: {options}.",
+    },
+    "pl": {
+        "afk_confirmation": "Odnotowano: nieobecny ({duration}).",
+        "afk_no_duration": "bez podanego czasu",
+        "back_confirmation": "Witaj z powrotem!",
+        "back_not_afk": "Nie byłeś oznaczony jako nieobecny.",
+        "overdue_dm_text": "⏰ Miałeś wrócić o {time}. Oznaczyć powrót?",
+        "overdue_button_label": "Wróciłem",
+        "overdue_dm_resolved": "Witaj z powrotem! Oznaczono automatycznie przyciskiem.",
+        "lang_set": "Ustawiono język bota: {name}.",
+        "lang_current": "Obecny język bota: {name}. Dostępne: {options}.",
+        "lang_invalid": "Nieznany język: {input!r}. Dostępne: {options}.",
+    },
+    "uk": {
+        "afk_confirmation": "Відмічено: відійшов ({duration}).",
+        "afk_no_duration": "без вказання часу",
+        "back_confirmation": "З поверненням!",
+        "back_not_afk": "Ти й не відмічався як відсутній.",
+        "overdue_dm_text": "⏰ Ти мав повернутися о {time}. Відмітити повернення?",
+        "overdue_button_label": "Повернувся",
+        "overdue_dm_resolved": "З поверненням! Відмічено автоматично кнопкою.",
+        "lang_set": "Мову бота встановлено: {name}.",
+        "lang_current": "Поточна мова бота: {name}. Доступно: {options}.",
+        "lang_invalid": "Невідома мова: {input!r}. Доступно: {options}.",
     },
 }
 

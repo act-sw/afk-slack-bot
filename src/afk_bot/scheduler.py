@@ -18,15 +18,14 @@ def start_daily_cleanup(
     state: StateStore,
     queue: SingleWriterQueue,
     client: AsyncWebClient,
-    canvas_id: str,
+    canvas_ids: list[str],
     hour: int,
     minute: int,
     timezone: str,
-    default_locale: str,
 ) -> None:
     async def cleanup_job():
         state.clear()
-        await render_and_push(client, canvas_id, state.all(), datetime.now(), default_locale)
+        await render_and_push(client, canvas_ids, state.all(), datetime.now())
 
     async def run_cleanup_job():
         await queue.submit(cleanup_job)
@@ -44,15 +43,19 @@ def start_overdue_checker(
     state: StateStore,
     queue: SingleWriterQueue,
     client: AsyncWebClient,
-    canvas_id: str,
+    canvas_ids: list[str],
     interval_minutes: int,
-    default_locale: str,
 ) -> None:
     async def check_job():
         now_ts = datetime.now().timestamp()
         entries = state.all()
         for entry in entries:
-            if entry.notified or entry.expected_return_ts is None or entry.expected_return_ts >= now_ts:
+            if (
+                entry.notified
+                or entry.returned_ts is not None
+                or entry.expected_return_ts is None
+                or entry.expected_return_ts >= now_ts
+            ):
                 continue
             await client.chat_postMessage(
                 channel=entry.user_id,
@@ -83,7 +86,7 @@ def start_overdue_checker(
             state.upsert(dataclasses.replace(entry, notified=True))
 
         if entries:
-            await render_and_push(client, canvas_id, state.all(), datetime.now(), default_locale)
+            await render_and_push(client, canvas_ids, state.all(), datetime.now())
 
     async def run_check_job():
         await queue.submit(check_job)

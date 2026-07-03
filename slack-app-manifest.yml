@@ -14,6 +14,10 @@ features:
     - command: /back
       description: Отметить досрочное возвращение
       should_escape: false
+    - command: /afk-lang
+      description: Выбрать язык общения с ботом
+      usage_hint: "ru | en | pl | uk"
+      should_escape: false
   interactivity:
     is_enabled: true
 oauth_config:

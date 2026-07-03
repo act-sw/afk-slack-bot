@@ -14,6 +14,7 @@ class AfkEntry:
     tz: str
     locale: str
     notified: bool = False
+    returned_ts: float | None = None
 
 
 class StateStore:
@@ -44,6 +45,9 @@ class StateStore:
     def upsert(self, entry: AfkEntry) -> None:
         self._entries[entry.user_id] = entry
         self._save()
+
+    def get(self, user_id: str) -> AfkEntry | None:
+        return self._entries.get(user_id)
 
     def remove(self, user_id: str) -> bool:
         if user_id not in self._entries:

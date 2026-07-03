@@ -7,6 +7,7 @@ from slack_bolt.async_app import AsyncApp
 
 from afk_bot.config import Config
 from afk_bot.handlers import register_handlers
+from afk_bot.preferences import PreferencesStore
 from afk_bot.queue_worker import SingleWriterQueue
 from afk_bot.scheduler import start_daily_cleanup, start_overdue_checker
 from afk_bot.state import StateStore
@@ -18,10 +19,11 @@ async def main() -> None:
     config = Config()
     app = AsyncApp(token=config.SLACK_BOT_TOKEN, signing_secret=config.SLACK_SIGNING_SECRET)
     state = StateStore(config.STATE_FILE_PATH)
+    prefs = PreferencesStore(config.PREFERENCES_FILE_PATH)
     queue = SingleWriterQueue()
     queue.start()
 
-    register_handlers(app, state, queue, config.CANVAS_ID, config.DEFAULT_LOCALE)
+    register_handlers(app, state, queue, config.CANVAS_IDS, config.DEFAULT_LOCALE, prefs)
 
     scheduler = AsyncIOScheduler()
     start_daily_cleanup(
@@ -29,20 +31,18 @@ async def main() -> None:
         state,
         queue,
         app.client,
-        config.CANVAS_ID,
+        config.CANVAS_IDS,
         config.DAILY_CLEANUP_HOUR,
         config.DAILY_CLEANUP_MINUTE,
         config.TIMEZONE,
-        config.DEFAULT_LOCALE,
     )
     start_overdue_checker(
         scheduler,
         state,
         queue,
         app.client,
-        config.CANVAS_ID,
+        config.CANVAS_IDS,
         config.OVERDUE_CHECK_INTERVAL_MINUTES,
-        config.DEFAULT_LOCALE,
     )
     scheduler.start()
 
