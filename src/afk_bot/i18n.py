@@ -19,6 +19,9 @@ _STRINGS = {
         "lang_set": "Язык бота установлен: {name}.",
         "lang_current": "Текущий язык бота: {name}. Доступно: {options}.",
         "lang_invalid": "Неизвестный язык: {input!r}. Доступно: {options}.",
+        "wait_confirmation": "Хорошо, дам знать, когда вернутся: {mentions}.",
+        "wait_no_mentions": "Отметь хотя бы одного пользователя: /afk wait @имя",
+        "wait_notification": "{name} вернулся(-ась).",
     },
     "en": {
         "afk_confirmation": "Marked as away ({duration}).",
@@ -31,6 +34,9 @@ _STRINGS = {
         "lang_set": "Bot language set to: {name}.",
         "lang_current": "Current bot language: {name}. Available: {options}.",
         "lang_invalid": "Unknown language: {input!r}. Available: {options}.",
+        "wait_confirmation": "Okay, I'll let you know when back: {mentions}.",
+        "wait_no_mentions": "Mention at least one user: /afk wait @name",
+        "wait_notification": "{name} is back.",
     },
     "pl": {
         "afk_confirmation": "Odnotowano: nieobecny ({duration}).",
@@ -43,6 +49,9 @@ _STRINGS = {
         "lang_set": "Ustawiono język bota: {name}.",
         "lang_current": "Obecny język bota: {name}. Dostępne: {options}.",
         "lang_invalid": "Nieznany język: {input!r}. Dostępne: {options}.",
+        "wait_confirmation": "Dobrze, dam znać, gdy wrócą: {mentions}.",
+        "wait_no_mentions": "Oznacz co najmniej jedną osobę: /afk wait @imię",
+        "wait_notification": "{name} wrócił(a).",
     },
     "uk": {
         "afk_confirmation": "Відмічено: відійшов ({duration}).",
@@ -55,6 +64,9 @@ _STRINGS = {
         "lang_set": "Мову бота встановлено: {name}.",
         "lang_current": "Поточна мова бота: {name}. Доступно: {options}.",
         "lang_invalid": "Невідома мова: {input!r}. Доступно: {options}.",
+        "wait_confirmation": "Добре, дам знати, коли повернуться: {mentions}.",
+        "wait_no_mentions": "Познач хоча б одного користувача: /afk wait @ім'я",
+        "wait_notification": "{name} повернувся(-лася).",
     },
 }
 

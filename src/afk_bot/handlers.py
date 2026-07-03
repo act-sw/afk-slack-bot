@@ -1,4 +1,5 @@
 import dataclasses
+import re
 from datetime import datetime
 
 from slack_bolt.async_app import AsyncApp
@@ -10,10 +11,12 @@ from afk_bot.i18n import LANGUAGE_NAMES, SUPPORTED_LOCALES, resolve_locale, t
 from afk_bot.preferences import PreferencesStore
 from afk_bot.queue_worker import SingleWriterQueue
 from afk_bot.state import AfkEntry, StateStore
+from afk_bot.watchers import WatchersStore
 
 BACK_BUTTON_ACTION_ID = "afk_back_button"
 
 _LANGUAGE_OPTIONS = ", ".join(SUPPORTED_LOCALES)
+_MENTION_RE = re.compile(r"<@([A-Z0-9]+)(?:\|[^>]*)?>")
 
 
 async def _fetch_user_profile(client, user_id: str, default_locale: str, prefs: PreferencesStore) -> dict:
@@ -34,13 +37,32 @@ def register_handlers(
     canvas_ids: list[str],
     default_locale: str,
     prefs: PreferencesStore,
+    watchers: WatchersStore,
 ) -> None:
-    @app.command("/afk")
-    async def handle_afk(ack, command, client, respond):
-        await ack()
+    async def mark_returned(user_id: str, client) -> AfkEntry | None:
+        async def job():
+            entry = state.get(user_id)
+            if entry is None or entry.returned_ts is not None:
+                return None
+            updated = dataclasses.replace(entry, returned_ts=datetime.now().timestamp())
+            state.upsert(updated)
+            await render_and_push(client, canvas_ids, state.all(), datetime.now())
+            return updated
+
+        updated_entry = await queue.submit(job)
+        if updated_entry is not None:
+            for watcher_id in watchers.pop_all(user_id):
+                watcher_profile = await _fetch_user_profile(client, watcher_id, default_locale, prefs)
+                await client.chat_postMessage(
+                    channel=watcher_id,
+                    text=t(watcher_profile["locale"], "wait_notification", name=updated_entry.name),
+                )
+        return updated_entry
+
+    async def do_afk(text: str, command, client, respond):
         now = datetime.now()
         profile = await _fetch_user_profile(client, command["user_id"], default_locale, prefs)
-        expected_return, comment = parse_afk_text(command["text"], now)
+        expected_return, comment = parse_afk_text(text, now)
 
         async def job():
             entry = AfkEntry(
@@ -62,27 +84,14 @@ def register_handlers(
             duration_label = t(profile["locale"], "afk_no_duration")
         await respond(t(profile["locale"], "afk_confirmation", duration=duration_label))
 
-    @app.command("/back")
-    async def handle_back(ack, command, client, respond):
-        await ack()
+    async def do_back(command, client, respond):
         profile = await _fetch_user_profile(client, command["user_id"], default_locale, prefs)
-
-        async def job():
-            entry = state.get(command["user_id"])
-            if entry is None or entry.returned_ts is not None:
-                return False
-            state.upsert(dataclasses.replace(entry, returned_ts=datetime.now().timestamp()))
-            await render_and_push(client, canvas_ids, state.all(), datetime.now())
-            return True
-
-        marked = await queue.submit(job)
-        key = "back_confirmation" if marked else "back_not_afk"
+        entry = await mark_returned(command["user_id"], client)
+        key = "back_confirmation" if entry else "back_not_afk"
         await respond(t(profile["locale"], key))
 
-    @app.command("/afk-lang")
-    async def handle_afk_lang(ack, command, respond):
-        await ack()
-        raw = command["text"].strip().lower()
+    async def do_lang(text: str, command, respond):
+        raw = text.strip().lower()
         current_locale = prefs.get_locale(command["user_id"]) or default_locale
 
         if not raw:
@@ -101,22 +110,46 @@ def register_handlers(
         await queue.submit(job)
         await respond(t(raw, "lang_set", name=LANGUAGE_NAMES[raw]))
 
+    async def do_wait(text: str, command, respond):
+        profile_locale = prefs.get_locale(command["user_id"]) or default_locale
+        target_ids = _MENTION_RE.findall(text)
+        if not target_ids:
+            await respond(t(profile_locale, "wait_no_mentions"))
+            return
+
+        async def job():
+            for target_id in target_ids:
+                watchers.add(target_id, command["user_id"])
+
+        await queue.submit(job)
+        mentions = " ".join(f"<@{uid}>" for uid in target_ids)
+        await respond(t(profile_locale, "wait_confirmation", mentions=mentions))
+
+    @app.command("/afk")
+    async def handle_afk_command(ack, command, client, respond):
+        await ack()
+        text = command["text"].strip()
+        first_word, _, rest = text.partition(" ")
+        subcommand = first_word.lower()
+
+        if subcommand == "back":
+            await do_back(command, client, respond)
+        elif subcommand == "lang":
+            await do_lang(rest, command, respond)
+        elif subcommand == "wait":
+            await do_wait(rest, command, respond)
+        else:
+            await do_afk(text, command, client, respond)
+
     @app.action(BACK_BUTTON_ACTION_ID)
     async def handle_back_button(ack, body, client):
         await ack()
         user_id = body["user"]["id"]
-        locale = prefs.get_locale(user_id) or resolve_locale(body["user"].get("locale"), default_locale)
+        entry_before = state.get(user_id)
+        locale = entry_before.locale if entry_before else (prefs.get_locale(user_id) or default_locale)
 
-        async def job():
-            entry = state.get(user_id)
-            if entry is None or entry.returned_ts is not None:
-                return False
-            state.upsert(dataclasses.replace(entry, returned_ts=datetime.now().timestamp()))
-            await render_and_push(client, canvas_ids, state.all(), datetime.now())
-            return True
-
-        marked = await queue.submit(job)
-        key = "overdue_dm_resolved" if marked else "back_not_afk"
+        entry = await mark_returned(user_id, client)
+        key = "overdue_dm_resolved" if entry else "back_not_afk"
         await client.chat_update(
             channel=body["channel"]["id"],
             ts=body["message"]["ts"],

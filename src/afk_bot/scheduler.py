@@ -11,6 +11,7 @@ from afk_bot.handlers import BACK_BUTTON_ACTION_ID
 from afk_bot.i18n import t
 from afk_bot.queue_worker import SingleWriterQueue
 from afk_bot.state import StateStore
+from afk_bot.watchers import WatchersStore
 
 
 def start_daily_cleanup(
@@ -19,12 +20,14 @@ def start_daily_cleanup(
     queue: SingleWriterQueue,
     client: AsyncWebClient,
     canvas_ids: list[str],
+    watchers: WatchersStore,
     hour: int,
     minute: int,
     timezone: str,
 ) -> None:
     async def cleanup_job():
         state.clear()
+        watchers.clear()
         await render_and_push(client, canvas_ids, state.all(), datetime.now())
 
     async def run_cleanup_job():

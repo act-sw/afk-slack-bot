@@ -11,6 +11,7 @@ from afk_bot.preferences import PreferencesStore
 from afk_bot.queue_worker import SingleWriterQueue
 from afk_bot.scheduler import start_daily_cleanup, start_overdue_checker
 from afk_bot.state import StateStore
+from afk_bot.watchers import WatchersStore
 
 logging.basicConfig(level=logging.INFO)
 
@@ -20,10 +21,11 @@ async def main() -> None:
     app = AsyncApp(token=config.SLACK_BOT_TOKEN, signing_secret=config.SLACK_SIGNING_SECRET)
     state = StateStore(config.STATE_FILE_PATH)
     prefs = PreferencesStore(config.PREFERENCES_FILE_PATH)
+    watchers = WatchersStore(config.WATCHERS_FILE_PATH)
     queue = SingleWriterQueue()
     queue.start()
 
-    register_handlers(app, state, queue, config.CANVAS_IDS, config.DEFAULT_LOCALE, prefs)
+    register_handlers(app, state, queue, config.CANVAS_IDS, config.DEFAULT_LOCALE, prefs, watchers)
 
     scheduler = AsyncIOScheduler()
     start_daily_cleanup(
@@ -32,6 +34,7 @@ async def main() -> None:
         queue,
         app.client,
         config.CANVAS_IDS,
+        watchers,
         config.DAILY_CLEANUP_HOUR,
         config.DAILY_CLEANUP_MINUTE,
         config.TIMEZONE,
