@@ -1,0 +1,10 @@
+# Do not scale this service beyond 1 replica: the in-process queue is the
+# only thing preventing races on the canvas re-render (see design doc).
+services:
+  bot:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./data:/data
