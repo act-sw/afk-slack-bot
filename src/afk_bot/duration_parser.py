@@ -6,7 +6,9 @@ _UNTIL_RE = re.compile(r"^until\s+(\d{1,2}):(\d{2})$", re.IGNORECASE)
 
 
 class ParseError(ValueError):
-    pass
+    def __init__(self, text: str):
+        self.text = text
+        super().__init__(f"could not parse duration: {text!r}")
 
 
 def parse_expected_return(text: str, now: datetime) -> datetime | None:
@@ -34,4 +36,4 @@ def parse_expected_return(text: str, now: datetime) -> datetime | None:
             candidate += timedelta(days=1)
         return candidate
 
-    raise ParseError(f"Не удалось распознать длительность: {text!r}")
+    raise ParseError(text)

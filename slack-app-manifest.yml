@@ -14,11 +14,15 @@ features:
     - command: /back
       description: Отметить досрочное возвращение
       should_escape: false
+  interactivity:
+    is_enabled: true
 oauth_config:
   scopes:
     bot:
       - commands
       - canvases:write
+      - chat:write
+      - users:read
 settings:
   socket_mode_enabled: true
   token_rotation_enabled: false
