@@ -4,7 +4,7 @@ from datetime import datetime
 
 from slack_bolt.async_app import AsyncApp
 
-from afk_bot.canvas_renderer import render_and_push
+from afk_bot.canvas_renderer import fmt_time, render_and_push
 from afk_bot.duration_parser import parse_afk_text
 from afk_bot.formatting import format_duration_words
 from afk_bot.i18n import LANGUAGE_NAMES, SUPPORTED_LOCALES, resolve_locale, t
@@ -14,6 +14,8 @@ from afk_bot.state import AfkEntry, StateStore
 from afk_bot.watchers import WatchersStore
 
 BACK_BUTTON_ACTION_ID = "afk_back_button"
+EXTEND_BUTTON_ACTION_ID = "afk_extend_button"
+EXTENSION_MINUTES = 30
 
 _LANGUAGE_OPTIONS = ", ".join(SUPPORTED_LOCALES)
 _MENTION_RE = re.compile(r"<@([A-Z0-9]+)(?:\|[^>]*)?>")
@@ -67,6 +69,32 @@ def register_handlers(
                 await client.chat_postMessage(
                     channel=watcher_id,
                     text=t(watcher_profile["locale"], "wait_notification", name=updated_entry.name),
+                )
+        return updated_entry
+
+    async def mark_extended(user_id: str, client) -> AfkEntry | None:
+        async def job():
+            entry = state.get_active(user_id)
+            if entry is None:
+                return None
+            base_ts = entry.expected_return_ts if entry.expected_return_ts is not None else datetime.now().timestamp()
+            updated = dataclasses.replace(
+                entry,
+                expected_return_ts=base_ts + EXTENSION_MINUTES * 60,
+                extended=True,
+                notified=False,
+            )
+            state.upsert(updated)
+            await render_and_push(client, canvas_ids, state.all(), datetime.now())
+            return updated
+
+        updated_entry = await queue.submit(job)
+        if updated_entry is not None:
+            for watcher_id in watchers.list(user_id):
+                watcher_profile = await _fetch_user_profile(client, watcher_id, default_locale, prefs)
+                await client.chat_postMessage(
+                    channel=watcher_id,
+                    text=t(watcher_profile["locale"], "wait_extended_notification", name=updated_entry.name),
                 )
         return updated_entry
 
@@ -166,6 +194,25 @@ def register_handlers(
 
         entry = await mark_returned(user_id, client)
         message = _build_return_message(entry, locale) if entry else t(locale, "back_not_afk")
+        await client.chat_update(
+            channel=body["channel"]["id"],
+            ts=body["message"]["ts"],
+            text=message,
+            blocks=[],
+        )
+
+    @app.action(EXTEND_BUTTON_ACTION_ID)
+    async def handle_extend_button(ack, body, client):
+        await ack()
+        user_id = body["user"]["id"]
+        active_before = state.get_active(user_id)
+        locale = active_before.locale if active_before else (prefs.get_locale(user_id) or default_locale)
+
+        entry = await mark_extended(user_id, client)
+        if entry:
+            message = t(locale, "extend_confirmation", time=fmt_time(entry.expected_return_ts, entry.tz))
+        else:
+            message = t(locale, "back_not_afk")
         await client.chat_update(
             channel=body["channel"]["id"],
             ts=body["message"]["ts"],

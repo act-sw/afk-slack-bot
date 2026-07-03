@@ -7,7 +7,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 from slack_sdk.web.async_client import AsyncWebClient
 
 from afk_bot.canvas_renderer import fmt_time, render_and_push
-from afk_bot.handlers import BACK_BUTTON_ACTION_ID
+from afk_bot.handlers import BACK_BUTTON_ACTION_ID, EXTEND_BUTTON_ACTION_ID
 from afk_bot.i18n import t
 from afk_bot.queue_worker import SingleWriterQueue
 from afk_bot.state import StateStore
@@ -60,19 +60,12 @@ def start_overdue_checker(
                 or entry.expected_return_ts >= now_ts
             ):
                 continue
+            reminder_text = t(entry.locale, "overdue_dm_text", time=fmt_time(entry.expected_return_ts, entry.tz))
             await client.chat_postMessage(
                 channel=entry.user_id,
-                text=t(entry.locale, "overdue_dm_text", time=fmt_time(entry.expected_return_ts, entry.tz)),
+                text=reminder_text,
                 blocks=[
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": t(
-                                entry.locale, "overdue_dm_text", time=fmt_time(entry.expected_return_ts, entry.tz)
-                            ),
-                        },
-                    },
+                    {"type": "section", "text": {"type": "mrkdwn", "text": reminder_text}},
                     {
                         "type": "actions",
                         "elements": [
@@ -81,7 +74,12 @@ def start_overdue_checker(
                                 "text": {"type": "plain_text", "text": t(entry.locale, "overdue_button_label")},
                                 "style": "primary",
                                 "action_id": BACK_BUTTON_ACTION_ID,
-                            }
+                            },
+                            {
+                                "type": "button",
+                                "text": {"type": "plain_text", "text": t(entry.locale, "extend_button_label")},
+                                "action_id": EXTEND_BUTTON_ACTION_ID,
+                            },
                         ],
                     },
                 ],

@@ -16,6 +16,7 @@ class AfkEntry:
     locale: str
     notified: bool = False
     returned_ts: float | None = None
+    extended: bool = False
 
 
 class StateStore:

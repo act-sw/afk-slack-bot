@@ -35,9 +35,19 @@ def _return_cell(entry: AfkEntry, now_ts: float) -> str:
 
 def _back_in_cell(entry: AfkEntry, now_ts: float) -> str:
     if entry.expected_return_ts is None:
-        return "—"
-    reference_ts = entry.returned_ts if entry.returned_ts is not None else now_ts
-    return format_countdown(entry.expected_return_ts - reference_ts)
+        base = "—"
+    else:
+        reference_ts = entry.returned_ts if entry.returned_ts is not None else now_ts
+        base = format_countdown(entry.expected_return_ts - reference_ts)
+    if entry.extended and entry.returned_ts is None:
+        return f"⏰{base}"
+    return base
+
+
+def _name_cell(entry: AfkEntry) -> str:
+    if entry.extended and entry.returned_ts is None:
+        return f"{entry.name}<br>_needs 30 minutes_"
+    return entry.name
 
 
 def _sort_key(entry: AfkEntry) -> float:
@@ -53,7 +63,7 @@ def render_markdown(entries: list[AfkEntry], now: datetime) -> str:
     now_ts = now.timestamp()
     header = f"| {' | '.join(_HEADERS)} |\n| {' | '.join(['---'] * len(_HEADERS))} |"
     rows = [
-        f"| {entry.name} | {_back_in_cell(entry, now_ts)} | {fmt_time(entry.start_ts, entry.tz)} "
+        f"| {_name_cell(entry)} | {_back_in_cell(entry, now_ts)} | {fmt_time(entry.start_ts, entry.tz)} "
         f"| {_return_cell(entry, now_ts)} | {entry.comment or ''} |"
         for entry in sorted(entries, key=_sort_key)
     ]

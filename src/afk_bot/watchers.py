@@ -34,6 +34,10 @@ class WatchersStore:
             watchers.append(watcher_user_id)
             self._save()
 
+    def list(self, target_user_id: str) -> list[str]:
+        """Non-destructive read, for notifications that don't end the watch (e.g. an extension)."""
+        return list(self._watchers.get(target_user_id, []))
+
     def pop_all(self, target_user_id: str) -> list[str]:
         watchers = self._watchers.pop(target_user_id, [])
         if watchers:

@@ -8,8 +8,13 @@ def format_delta(seconds: float) -> str:
 
 
 def format_countdown(seconds: float) -> str:
-    """Render a signed countdown as "2h15m", "49m", or "- 1h15m"."""
-    sign = "- " if seconds < 0 else ""
+    """Render a signed countdown as "2h15m", "49m", or "− 1h15m".
+
+    Uses a real minus sign (U+2212), not a hyphen, because a leading
+    "- " inside a markdown table cell renders as a bullet point in Slack
+    Canvas.
+    """
+    sign = "− " if seconds < 0 else ""
     total_minutes = round(abs(seconds) / 60)
     hours, minutes = divmod(total_minutes, 60)
     if hours:
