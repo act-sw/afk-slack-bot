@@ -35,7 +35,15 @@ async def main() -> None:
         config.TIMEZONE,
         config.DEFAULT_LOCALE,
     )
-    start_overdue_checker(scheduler, state, queue, app.client, config.OVERDUE_CHECK_INTERVAL_MINUTES)
+    start_overdue_checker(
+        scheduler,
+        state,
+        queue,
+        app.client,
+        config.CANVAS_ID,
+        config.OVERDUE_CHECK_INTERVAL_MINUTES,
+        config.DEFAULT_LOCALE,
+    )
     scheduler.start()
 
     handler = AsyncSocketModeHandler(app, config.SLACK_APP_TOKEN)

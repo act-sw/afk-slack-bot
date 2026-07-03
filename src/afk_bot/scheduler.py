@@ -28,8 +28,11 @@ def start_daily_cleanup(
         state.clear()
         await render_and_push(client, canvas_id, state.all(), datetime.now(), default_locale)
 
+    async def run_cleanup_job():
+        await queue.submit(cleanup_job)
+
     scheduler.add_job(
-        lambda: queue.submit(cleanup_job),
+        run_cleanup_job,
         trigger=CronTrigger(hour=hour, minute=minute, timezone=timezone),
         id="daily_afk_cleanup",
         replace_existing=True,
@@ -41,11 +44,14 @@ def start_overdue_checker(
     state: StateStore,
     queue: SingleWriterQueue,
     client: AsyncWebClient,
+    canvas_id: str,
     interval_minutes: int,
+    default_locale: str,
 ) -> None:
     async def check_job():
         now_ts = datetime.now().timestamp()
-        for entry in state.all():
+        entries = state.all()
+        for entry in entries:
             if entry.notified or entry.expected_return_ts is None or entry.expected_return_ts >= now_ts:
                 continue
             await client.chat_postMessage(
@@ -76,8 +82,14 @@ def start_overdue_checker(
             )
             state.upsert(dataclasses.replace(entry, notified=True))
 
+        if entries:
+            await render_and_push(client, canvas_id, state.all(), datetime.now(), default_locale)
+
+    async def run_check_job():
+        await queue.submit(check_job)
+
     scheduler.add_job(
-        lambda: queue.submit(check_job),
+        run_check_job,
         trigger=IntervalTrigger(minutes=interval_minutes),
         id="afk_overdue_checker",
         replace_existing=True,
