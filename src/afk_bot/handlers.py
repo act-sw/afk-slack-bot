@@ -90,7 +90,7 @@ def register_handlers(
 
         updated_entry = await queue.submit(job)
         if updated_entry is not None:
-            for watcher_id in watchers.list(user_id):
+            for watcher_id in watchers.list_watchers(user_id):
                 watcher_profile = await _fetch_user_profile(client, watcher_id, default_locale, prefs)
                 await client.chat_postMessage(
                     channel=watcher_id,
