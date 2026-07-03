@@ -29,6 +29,7 @@ _STRINGS = {
         "wait_no_mentions": "Отметь хотя бы одного пользователя: /afk wait @имя",
         "wait_notification": "{name} вернулся(-ась).",
         "wait_extended_notification": "{name} нужно ещё полчаса.",
+        "wait_target_notification": "{name} ждёт твоего возвращения — если получится, свяжись с ним(-ней) заранее.",
     },
     "en": {
         "afk_confirmation_duration": "See you in {duration}!",
@@ -49,6 +50,7 @@ _STRINGS = {
         "wait_no_mentions": "Mention at least one user: /afk wait @name",
         "wait_notification": "{name} is back.",
         "wait_extended_notification": "{name} needs 30 more minutes.",
+        "wait_target_notification": "{name} is waiting for you to be back — reach out to them first if you can.",
     },
     "pl": {
         "afk_confirmation_duration": "Do zobaczenia za {duration}!",
@@ -69,6 +71,7 @@ _STRINGS = {
         "wait_no_mentions": "Oznacz co najmniej jedną osobę: /afk wait @imię",
         "wait_notification": "{name} wrócił(a).",
         "wait_extended_notification": "{name} potrzebuje jeszcze 30 minut.",
+        "wait_target_notification": "{name} czeka na Twój powrót — skontaktuj się z nim/nią najpierw, jeśli możesz.",
     },
     "uk": {
         "afk_confirmation_duration": "Побачимось через {duration}!",
@@ -89,6 +92,7 @@ _STRINGS = {
         "wait_no_mentions": "Познач хоча б одного користувача: /afk wait @ім'я",
         "wait_notification": "{name} повернувся(-лася).",
         "wait_extended_notification": "{name} потрібно ще 30 хвилин.",
+        "wait_target_notification": "{name} чекає на твоє повернення — якщо вийде, звʼяжись із ним(-нею) спершу.",
     },
     "be": {
         "afk_confirmation_duration": "Пабачымся праз {duration}!",
@@ -109,6 +113,7 @@ _STRINGS = {
         "wait_no_mentions": "Пазнач хаця б аднаго карыстальніка: /afk wait @імя",
         "wait_notification": "{name} вярнуўся(-лася).",
         "wait_extended_notification": "{name} трэба яшчэ 30 хвілін.",
+        "wait_target_notification": "{name} чакае твайго вяртання — калі атрымаецца, звяжыся з ім(-ёй) спачатку.",
     },
     "es": {
         "afk_confirmation_duration": "¡Nos vemos en {duration}!",
@@ -129,6 +134,7 @@ _STRINGS = {
         "wait_no_mentions": "Menciona al menos un usuario: /afk wait @nombre",
         "wait_notification": "{name} ha vuelto.",
         "wait_extended_notification": "{name} necesita 30 minutos más.",
+        "wait_target_notification": "{name} está esperando a que vuelvas — contacta con él/ella primero si puedes.",
     },
 }
 

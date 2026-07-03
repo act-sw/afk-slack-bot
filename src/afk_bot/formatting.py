@@ -24,11 +24,18 @@ def format_countdown(seconds: float) -> str:
 
 _SLAVIC_LOCALES = {"ru", "uk", "be", "pl"}
 
+# Slavic "one" forms are accusative singular (every caller embeds these in an
+# accusative-governing phrase: "через X", "за X", or a bare duration
+# complement like "отсутствовал X"). "Час"-type words are masculine
+# inanimate, so accusative == nominative there; the feminine "minute"/"hour"
+# words (minute in all four, hour in uk/be/pl) differ from their nominative
+# form ("минута" -> "минуту", "godzina" -> "godzinę", etc). The 2-4/5+ forms
+# are genitive singular/plural, which don't change with the governing case.
 _UNIT_WORDS = {
-    "ru": {"hour": ("час", "часа", "часов"), "minute": ("минута", "минуты", "минут")},
-    "uk": {"hour": ("година", "години", "годин"), "minute": ("хвилина", "хвилини", "хвилин")},
-    "be": {"hour": ("гадзіна", "гадзіны", "гадзін"), "minute": ("хвіліна", "хвіліны", "хвілін")},
-    "pl": {"hour": ("godzina", "godziny", "godzin"), "minute": ("minuta", "minuty", "minut")},
+    "ru": {"hour": ("час", "часа", "часов"), "minute": ("минуту", "минуты", "минут")},
+    "uk": {"hour": ("годину", "години", "годин"), "minute": ("хвилину", "хвилини", "хвилин")},
+    "be": {"hour": ("гадзіну", "гадзіны", "гадзін"), "minute": ("хвіліну", "хвіліны", "хвілін")},
+    "pl": {"hour": ("godzinę", "godziny", "godzin"), "minute": ("minutę", "minuty", "minut")},
     "en": {"hour": ("hour", "hours", "hours"), "minute": ("minute", "minutes", "minutes")},
     "es": {"hour": ("hora", "horas", "horas"), "minute": ("minuto", "minutos", "minutos")},
 }

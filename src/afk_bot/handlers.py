@@ -154,11 +154,11 @@ def register_handlers(
         await queue.submit(job)
         await respond(t(raw, "lang_set", name=LANGUAGE_NAMES[raw]))
 
-    async def do_wait(text: str, command, respond):
-        profile_locale = prefs.get_locale(command["user_id"]) or default_locale
+    async def do_wait(text: str, command, client, respond):
+        watcher_profile = await _fetch_user_profile(client, command["user_id"], default_locale, prefs)
         target_ids = _MENTION_RE.findall(text)
         if not target_ids:
-            await respond(t(profile_locale, "wait_no_mentions"))
+            await respond(t(watcher_profile["locale"], "wait_no_mentions"))
             return
 
         async def job():
@@ -167,7 +167,14 @@ def register_handlers(
 
         await queue.submit(job)
         mentions = " ".join(f"<@{uid}>" for uid in target_ids)
-        await respond(t(profile_locale, "wait_confirmation", mentions=mentions))
+        await respond(t(watcher_profile["locale"], "wait_confirmation", mentions=mentions))
+
+        for target_id in target_ids:
+            target_profile = await _fetch_user_profile(client, target_id, default_locale, prefs)
+            await client.chat_postMessage(
+                channel=target_id,
+                text=t(target_profile["locale"], "wait_target_notification", name=watcher_profile["name"]),
+            )
 
     @app.command("/afk")
     async def handle_afk_command(ack, command, client, respond):
@@ -181,7 +188,7 @@ def register_handlers(
         elif subcommand == "lang":
             await do_lang(rest, command, respond)
         elif subcommand == "wait":
-            await do_wait(rest, command, respond)
+            await do_wait(rest, command, client, respond)
         else:
             await do_afk(text, command, client, respond)
 
