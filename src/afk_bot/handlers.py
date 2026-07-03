@@ -6,7 +6,7 @@ from slack_bolt.async_app import AsyncApp
 
 from afk_bot.canvas_renderer import render_and_push
 from afk_bot.duration_parser import parse_afk_text
-from afk_bot.formatting import format_delta
+from afk_bot.formatting import format_duration_words
 from afk_bot.i18n import LANGUAGE_NAMES, SUPPORTED_LOCALES, resolve_locale, t
 from afk_bot.preferences import PreferencesStore
 from afk_bot.queue_worker import SingleWriterQueue
@@ -30,6 +30,17 @@ async def _fetch_user_profile(client, user_id: str, default_locale: str, prefs: 
     }
 
 
+def _build_return_message(entry: AfkEntry, locale: str) -> str:
+    duration = format_duration_words(entry.returned_ts - entry.start_ts, locale)
+    if entry.expected_return_ts is None:
+        return t(locale, "back_confirmation_no_delta", duration=duration)
+
+    diff = entry.returned_ts - entry.expected_return_ts
+    delta_key = "delta_less" if diff <= 0 else "delta_more"
+    delta = t(locale, delta_key, amount=format_duration_words(abs(diff), locale))
+    return t(locale, "back_confirmation_with_delta", duration=duration, delta=delta)
+
+
 def register_handlers(
     app: AsyncApp,
     state: StateStore,
@@ -41,8 +52,8 @@ def register_handlers(
 ) -> None:
     async def mark_returned(user_id: str, client) -> AfkEntry | None:
         async def job():
-            entry = state.get(user_id)
-            if entry is None or entry.returned_ts is not None:
+            entry = state.get_active(user_id)
+            if entry is None:
                 return None
             updated = dataclasses.replace(entry, returned_ts=datetime.now().timestamp())
             state.upsert(updated)
@@ -61,12 +72,16 @@ def register_handlers(
 
     async def do_afk(text: str, command, client, respond):
         now = datetime.now()
-        profile = await _fetch_user_profile(client, command["user_id"], default_locale, prefs)
+        user_id = command["user_id"]
+        profile = await _fetch_user_profile(client, user_id, default_locale, prefs)
         expected_return, comment = parse_afk_text(text, now)
 
         async def job():
+            active = state.get_active(user_id)
+            entry_id = active.entry_id if active else f"{user_id}-{int(now.timestamp() * 1000)}"
             entry = AfkEntry(
-                user_id=command["user_id"],
+                entry_id=entry_id,
+                user_id=user_id,
                 name=profile["name"],
                 start_ts=now.timestamp(),
                 expected_return_ts=expected_return.timestamp() if expected_return else None,
@@ -79,16 +94,17 @@ def register_handlers(
 
         await queue.submit(job)
         if expected_return:
-            duration_label = format_delta((expected_return - now).total_seconds())
+            duration = format_duration_words((expected_return - now).total_seconds(), profile["locale"])
+            message = t(profile["locale"], "afk_confirmation_duration", duration=duration)
         else:
-            duration_label = t(profile["locale"], "afk_no_duration")
-        await respond(t(profile["locale"], "afk_confirmation", duration=duration_label))
+            message = t(profile["locale"], "afk_confirmation_open")
+        await respond(message)
 
     async def do_back(command, client, respond):
         profile = await _fetch_user_profile(client, command["user_id"], default_locale, prefs)
         entry = await mark_returned(command["user_id"], client)
-        key = "back_confirmation" if entry else "back_not_afk"
-        await respond(t(profile["locale"], key))
+        message = _build_return_message(entry, profile["locale"]) if entry else t(profile["locale"], "back_not_afk")
+        await respond(message)
 
     async def do_lang(text: str, command, respond):
         raw = text.strip().lower()
@@ -145,14 +161,14 @@ def register_handlers(
     async def handle_back_button(ack, body, client):
         await ack()
         user_id = body["user"]["id"]
-        entry_before = state.get(user_id)
-        locale = entry_before.locale if entry_before else (prefs.get_locale(user_id) or default_locale)
+        active_before = state.get_active(user_id)
+        locale = active_before.locale if active_before else (prefs.get_locale(user_id) or default_locale)
 
         entry = await mark_returned(user_id, client)
-        key = "overdue_dm_resolved" if entry else "back_not_afk"
+        message = _build_return_message(entry, locale) if entry else t(locale, "back_not_afk")
         await client.chat_update(
             channel=body["channel"]["id"],
             ts=body["message"]["ts"],
-            text=t(locale, key),
+            text=message,
             blocks=[],
         )

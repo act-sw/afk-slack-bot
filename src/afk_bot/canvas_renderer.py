@@ -7,7 +7,7 @@ from slack_sdk.web.async_client import AsyncWebClient
 from afk_bot.formatting import format_countdown, format_delta
 from afk_bot.state import AfkEntry
 
-_HEADERS = ["Name", "AFK since", "Estimated return", "Back in", "Comment"]
+_HEADERS = ["Name", "Back in", "AFK since", "Estimated return", "Comment"]
 
 
 def fmt_time(ts: float | None, tz_name: str) -> str:
@@ -53,8 +53,8 @@ def render_markdown(entries: list[AfkEntry], now: datetime) -> str:
     now_ts = now.timestamp()
     header = f"| {' | '.join(_HEADERS)} |\n| {' | '.join(['---'] * len(_HEADERS))} |"
     rows = [
-        f"| {entry.name} | {fmt_time(entry.start_ts, entry.tz)} | {_return_cell(entry, now_ts)} "
-        f"| {_back_in_cell(entry, now_ts)} | {entry.comment or ''} |"
+        f"| {entry.name} | {_back_in_cell(entry, now_ts)} | {fmt_time(entry.start_ts, entry.tz)} "
+        f"| {_return_cell(entry, now_ts)} | {entry.comment or ''} |"
         for entry in sorted(entries, key=_sort_key)
     ]
 

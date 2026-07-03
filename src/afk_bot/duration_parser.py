@@ -1,3 +1,4 @@
+import math
 import re
 from datetime import datetime, timedelta
 
@@ -34,6 +35,6 @@ def parse_afk_text(text: str, now: datetime) -> tuple[datetime | None, str]:
         return None, text
 
     value = float(number_match.group().replace(",", "."))
-    minutes = value * 60 if value <= _HOURS_MAX else value
+    minutes = value * 60 if value <= _HOURS_MAX else math.ceil(value)
     comment = text[number_match.end() :].strip()
     return now + timedelta(minutes=minutes), comment

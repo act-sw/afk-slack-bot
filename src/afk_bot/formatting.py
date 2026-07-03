@@ -8,10 +8,53 @@ def format_delta(seconds: float) -> str:
 
 
 def format_countdown(seconds: float) -> str:
-    """Render a signed countdown as "2h 15m", "49 min", or "- 1h 15m"."""
+    """Render a signed countdown as "2h15m", "49m", or "- 1h15m"."""
     sign = "- " if seconds < 0 else ""
     total_minutes = round(abs(seconds) / 60)
     hours, minutes = divmod(total_minutes, 60)
     if hours:
-        return f"{sign}{hours}h {minutes}m"
-    return f"{sign}{minutes} min"
+        return f"{sign}{hours}h{minutes}m"
+    return f"{sign}{minutes}m"
+
+
+_SLAVIC_LOCALES = {"ru", "uk", "be", "pl"}
+
+_UNIT_WORDS = {
+    "ru": {"hour": ("час", "часа", "часов"), "minute": ("минута", "минуты", "минут")},
+    "uk": {"hour": ("година", "години", "годин"), "minute": ("хвилина", "хвилини", "хвилин")},
+    "be": {"hour": ("гадзіна", "гадзіны", "гадзін"), "minute": ("хвіліна", "хвіліны", "хвілін")},
+    "pl": {"hour": ("godzina", "godziny", "godzin"), "minute": ("minuta", "minuty", "minut")},
+    "en": {"hour": ("hour", "hours", "hours"), "minute": ("minute", "minutes", "minutes")},
+    "es": {"hour": ("hora", "horas", "horas"), "minute": ("minuto", "minutos", "minutos")},
+}
+
+
+def _slavic_form(n: int, forms: tuple[str, str, str]) -> str:
+    n100 = n % 100
+    n10 = n % 10
+    if 10 <= n100 <= 20:
+        return forms[2]
+    if n10 == 1:
+        return forms[0]
+    if 2 <= n10 <= 4:
+        return forms[1]
+    return forms[2]
+
+
+def _unit_word(n: int, unit: str, locale: str) -> str:
+    forms = _UNIT_WORDS.get(locale, _UNIT_WORDS["en"])[unit]
+    if locale in _SLAVIC_LOCALES:
+        return _slavic_form(n, forms)
+    return forms[0] if n == 1 else forms[1]
+
+
+def format_duration_words(seconds: float, locale: str) -> str:
+    """Render a duration in full localized words, e.g. "45 minutes", "1 hour 20 minutes"."""
+    total_minutes = round(abs(seconds) / 60)
+    hours, minutes = divmod(total_minutes, 60)
+    parts = []
+    if hours:
+        parts.append(f"{hours} {_unit_word(hours, 'hour', locale)}")
+    if minutes or not hours:
+        parts.append(f"{minutes} {_unit_word(minutes, 'minute', locale)}")
+    return " ".join(parts)

@@ -6,6 +6,7 @@ from pathlib import Path
 
 @dataclass
 class AfkEntry:
+    entry_id: str
     user_id: str
     name: str
     start_ts: float
@@ -18,7 +19,10 @@ class AfkEntry:
 
 
 class StateStore:
-    """JSON-file-backed store of current AFK entries.
+    """JSON-file-backed store of AFK entries, keyed by entry_id.
+
+    A user can have multiple entries in the same day (e.g. AFK, back, AFK
+    again) — only the entry with `returned_ts is None`, if any, is "active".
 
     Not safe for concurrent writers — callers must serialize access
     (the single queue worker in queue_worker.py does this).
@@ -34,27 +38,23 @@ class StateStore:
             return {}
         with open(self._path, encoding="utf-8") as f:
             raw = json.load(f)
-        return {uid: AfkEntry(**entry) for uid, entry in raw.items()}
+        return {eid: AfkEntry(**entry) for eid, entry in raw.items()}
 
     def _save(self) -> None:
         tmp_path = self._path.with_suffix(".tmp")
         with open(tmp_path, "w", encoding="utf-8") as f:
-            json.dump({uid: asdict(e) for uid, e in self._entries.items()}, f, ensure_ascii=False, indent=2)
+            json.dump({eid: asdict(e) for eid, e in self._entries.items()}, f, ensure_ascii=False, indent=2)
         os.replace(tmp_path, self._path)
 
     def upsert(self, entry: AfkEntry) -> None:
-        self._entries[entry.user_id] = entry
+        self._entries[entry.entry_id] = entry
         self._save()
 
-    def get(self, user_id: str) -> AfkEntry | None:
-        return self._entries.get(user_id)
-
-    def remove(self, user_id: str) -> bool:
-        if user_id not in self._entries:
-            return False
-        del self._entries[user_id]
-        self._save()
-        return True
+    def get_active(self, user_id: str) -> AfkEntry | None:
+        for entry in self._entries.values():
+            if entry.user_id == user_id and entry.returned_ts is None:
+                return entry
+        return None
 
     def clear(self) -> None:
         self._entries = {}
