@@ -45,7 +45,6 @@ async def main() -> None:
         queue,
         app.client,
         config.CANVAS_IDS,
-        config.OVERDUE_CHECK_INTERVAL_MINUTES,
     )
     scheduler.start()
 

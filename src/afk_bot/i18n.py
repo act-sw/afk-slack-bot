@@ -36,7 +36,10 @@ _STRINGS = {
             "• `/afk back` — отметить возвращение\n"
             "• `/afk lang [ru|en|pl|uk|be|es]` — язык бота (без аргумента — показать текущий)\n"
             "• `/afk wait @user [@user2 ...]` — узнать, когда вернутся указанные люди\n"
-            "• `/afk help` — эта подсказка"
+            "• `/afk help` — эта подсказка\n\n"
+            "*Примеры:*\n"
+            "`/afk 1.5 обед` · `/afk 90` · `/afk until 15:00` · `/afk back` · "
+            "`/afk lang en` · `/afk wait @имя`"
         ),
     },
     "en": {
@@ -65,7 +68,10 @@ _STRINGS = {
             "• `/afk back` — mark your return\n"
             "• `/afk lang [ru|en|pl|uk|be|es]` — bot language (no argument shows current)\n"
             "• `/afk wait @user [@user2 ...]` — get notified when the mentioned people are back\n"
-            "• `/afk help` — this message"
+            "• `/afk help` — this message\n\n"
+            "*Examples:*\n"
+            "`/afk 1.5 lunch` · `/afk 90` · `/afk until 15:00` · `/afk back` · "
+            "`/afk lang en` · `/afk wait @name`"
         ),
     },
     "pl": {
@@ -94,7 +100,10 @@ _STRINGS = {
             "• `/afk back` — oznacz powrót\n"
             "• `/afk lang [ru|en|pl|uk|be|es]` — język bota (bez argumentu pokazuje obecny)\n"
             "• `/afk wait @user [@user2 ...]` — dowiedz się, kiedy wskazane osoby wrócą\n"
-            "• `/afk help` — ta wiadomość"
+            "• `/afk help` — ta wiadomość\n\n"
+            "*Przykłady:*\n"
+            "`/afk 1.5 obiad` · `/afk 90` · `/afk until 15:00` · `/afk back` · "
+            "`/afk lang en` · `/afk wait @imię`"
         ),
     },
     "uk": {
@@ -123,7 +132,10 @@ _STRINGS = {
             "• `/afk back` — відмітити повернення\n"
             "• `/afk lang [ru|en|pl|uk|be|es]` — мова бота (без аргументу — показати поточну)\n"
             "• `/afk wait @user [@user2 ...]` — дізнатись, коли повернуться вказані люди\n"
-            "• `/afk help` — ця підказка"
+            "• `/afk help` — ця підказка\n\n"
+            "*Приклади:*\n"
+            "`/afk 1.5 обід` · `/afk 90` · `/afk until 15:00` · `/afk back` · "
+            "`/afk lang en` · `/afk wait @ім'я`"
         ),
     },
     "be": {
@@ -152,7 +164,10 @@ _STRINGS = {
             "• `/afk back` — адзначыць вяртанне\n"
             "• `/afk lang [ru|en|pl|uk|be|es]` — мова бота (без аргумента — паказаць бягучую)\n"
             "• `/afk wait @user [@user2 ...]` — даведацца, калі вернуцца ўказаныя людзі\n"
-            "• `/afk help` — гэтая падказка"
+            "• `/afk help` — гэтая падказка\n\n"
+            "*Прыклады:*\n"
+            "`/afk 1.5 абед` · `/afk 90` · `/afk until 15:00` · `/afk back` · "
+            "`/afk lang en` · `/afk wait @імя`"
         ),
     },
     "es": {
@@ -181,7 +196,10 @@ _STRINGS = {
             "• `/afk back` — marca tu regreso\n"
             "• `/afk lang [ru|en|pl|uk|be|es]` — idioma del bot (sin argumento muestra el actual)\n"
             "• `/afk wait @user [@user2 ...]` — recibe un aviso cuando vuelvan las personas mencionadas\n"
-            "• `/afk help` — este mensaje"
+            "• `/afk help` — este mensaje\n\n"
+            "*Ejemplos:*\n"
+            "`/afk 1.5 almuerzo` · `/afk 90` · `/afk until 15:00` · `/afk back` · "
+            "`/afk lang en` · `/afk wait @nombre`"
         ),
     },
 }

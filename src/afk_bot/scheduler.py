@@ -3,7 +3,6 @@ from datetime import datetime
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
-from apscheduler.triggers.interval import IntervalTrigger
 from slack_sdk.web.async_client import AsyncWebClient
 
 from afk_bot.canvas_renderer import fmt_time, render_and_push
@@ -47,7 +46,6 @@ def start_overdue_checker(
     queue: SingleWriterQueue,
     client: AsyncWebClient,
     canvas_ids: list[str],
-    interval_minutes: int,
 ) -> None:
     async def check_job():
         now_ts = datetime.now().timestamp()
@@ -94,7 +92,7 @@ def start_overdue_checker(
 
     scheduler.add_job(
         run_check_job,
-        trigger=IntervalTrigger(minutes=interval_minutes),
+        trigger=CronTrigger(second=0),
         id="afk_overdue_checker",
         replace_existing=True,
     )

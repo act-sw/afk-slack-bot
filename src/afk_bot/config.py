@@ -17,4 +17,3 @@ class Config:
     DAILY_CLEANUP_HOUR = int(os.environ.get("DAILY_CLEANUP_HOUR", "4"))
     DAILY_CLEANUP_MINUTE = int(os.environ.get("DAILY_CLEANUP_MINUTE", "0"))
     DEFAULT_LOCALE = os.environ.get("DEFAULT_LOCALE", "ru")
-    OVERDUE_CHECK_INTERVAL_MINUTES = int(os.environ.get("OVERDUE_CHECK_INTERVAL_MINUTES", "5"))

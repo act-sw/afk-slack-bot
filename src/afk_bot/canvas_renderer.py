@@ -7,7 +7,7 @@ from slack_sdk.web.async_client import AsyncWebClient
 from afk_bot.formatting import format_countdown, format_delta
 from afk_bot.state import AfkEntry
 
-_HEADERS = ["Name", "Back in", "AFK since", "Estimated return", "Comment"]
+_HEADERS = ["Name", "Back in", "AFK since", "Return at", "Comment"]
 
 
 def fmt_time(ts: float | None, tz_name: str) -> str:
@@ -30,15 +30,22 @@ def _return_cell(entry: AfkEntry, now_ts: float) -> str:
     if entry.expected_return_ts is not None and entry.expected_return_ts < now_ts:
         return f"{base} ⏰ ({format_delta(now_ts - entry.expected_return_ts)} late)"
 
+    if entry.expected_return_ts is not None:
+        return f"{base} (estimate)"
+
     return base
 
 
-def _back_in_cell(entry: AfkEntry, now_ts: float) -> str:
+def _back_in_seconds(entry: AfkEntry, now_ts: float) -> float | None:
     if entry.expected_return_ts is None:
-        base = "—"
-    else:
-        reference_ts = entry.returned_ts if entry.returned_ts is not None else now_ts
-        base = format_countdown(entry.expected_return_ts - reference_ts)
+        return None
+    reference_ts = entry.returned_ts if entry.returned_ts is not None else now_ts
+    return entry.expected_return_ts - reference_ts
+
+
+def _back_in_cell(entry: AfkEntry, now_ts: float) -> str:
+    seconds = _back_in_seconds(entry, now_ts)
+    base = "—" if seconds is None else format_countdown(seconds)
     if entry.extended and entry.returned_ts is None:
         return f"⏰{base}"
     return base
@@ -58,26 +65,46 @@ def _name_cell(entry: AfkEntry, now_ts: float) -> str:
     return name_line
 
 
-def _sort_key(entry: AfkEntry) -> float:
-    return entry.expected_return_ts if entry.expected_return_ts is not None else math.inf
+def _render_row(entry: AfkEntry, now_ts: float) -> str:
+    return (
+        f"| {_name_cell(entry, now_ts)} | {_back_in_cell(entry, now_ts)} | {fmt_time(entry.start_ts, entry.tz)} "
+        f"| {_return_cell(entry, now_ts)} | {entry.comment or ''} |"
+    )
+
+
+def _render_table(entries: list[AfkEntry], now_ts: float) -> str:
+    header = f"| {' | '.join(_HEADERS)} |\n| {' | '.join(['---'] * len(_HEADERS))} |"
+    rows = [_render_row(entry, now_ts) for entry in entries]
+    return header + "\n" + "\n".join(rows)
 
 
 def render_markdown(entries: list[AfkEntry], now: datetime) -> str:
     header_line = f"**Away from keyboard:** {now:%a}, {now:%b}-{now.day}"
 
-    if not entries:
+    away = [e for e in entries if e.returned_ts is None]
+    returned = [e for e in entries if e.returned_ts is not None]
+
+    if not away and not returned:
         empty_text = "_Weekend._" if now.weekday() >= 5 else "_Everyone's around._"
         return f"{header_line}\n\n{empty_text}"
 
     now_ts = now.timestamp()
-    header = f"| {' | '.join(_HEADERS)} |\n| {' | '.join(['---'] * len(_HEADERS))} |"
-    rows = [
-        f"| {_name_cell(entry, now_ts)} | {_back_in_cell(entry, now_ts)} | {fmt_time(entry.start_ts, entry.tz)} "
-        f"| {_return_cell(entry, now_ts)} | {entry.comment or ''} |"
-        for entry in sorted(entries, key=_sort_key)
-    ]
+    parts = [header_line]
 
-    return header_line + "\n\n" + header + "\n" + "\n".join(rows)
+    if away:
+        away.sort(key=lambda e: (v if (v := _back_in_seconds(e, now_ts)) is not None else math.inf))
+        parts.append(_render_table(away, now_ts))
+    else:
+        parts.append("_Weekend._" if now.weekday() >= 5 else "_Everyone's around._")
+
+    if returned:
+        returned.sort(
+            key=lambda e: (v if (v := _back_in_seconds(e, now_ts)) is not None else -math.inf), reverse=True
+        )
+        parts.append("**Back in business:**")
+        parts.append(_render_table(returned, now_ts))
+
+    return "\n\n".join(parts)
 
 
 async def render_and_push(client: AsyncWebClient, canvas_ids: list[str], entries: list[AfkEntry], now: datetime) -> None:
