@@ -58,7 +58,11 @@ def start_overdue_checker(
                 or entry.expected_return_ts >= now_ts
             ):
                 continue
-            reminder_text = t(entry.locale, "overdue_dm_text", time=fmt_time(entry.expected_return_ts, entry.tz))
+            reminder_text = t(
+                entry.locale,
+                "overdue_dm_text",
+                time=fmt_time(entry.expected_return_ts, entry.tz, entry.time_format),
+            )
             await client.chat_postMessage(
                 channel=entry.user_id,
                 text=reminder_text,

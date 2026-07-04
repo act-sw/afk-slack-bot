@@ -17,6 +17,8 @@ class AfkEntry:
     notified: bool = False
     returned_ts: float | None = None
     extended: bool = False
+    original_expected_return_ts: float | None = None
+    time_format: str = "24"
 
 
 class StateStore:

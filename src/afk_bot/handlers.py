@@ -1,6 +1,7 @@
 import dataclasses
 import re
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from slack_bolt.async_app import AsyncApp
 
@@ -29,6 +30,7 @@ async def _fetch_user_profile(client, user_id: str, default_locale: str, prefs: 
         "name": display_name,
         "tz": info.get("tz") or "UTC",
         "locale": locale,
+        "time_format": prefs.get_time_format(user_id) or "24",
     }
 
 
@@ -99,9 +101,9 @@ def register_handlers(
         return updated_entry
 
     async def do_afk(text: str, command, client, respond):
-        now = datetime.now()
         user_id = command["user_id"]
         profile = await _fetch_user_profile(client, user_id, default_locale, prefs)
+        now = datetime.now(ZoneInfo(profile["tz"]))
         expected_return, comment = parse_afk_text(text, now)
 
         async def job():
@@ -116,6 +118,8 @@ def register_handlers(
                 comment=comment,
                 tz=profile["tz"],
                 locale=profile["locale"],
+                original_expected_return_ts=expected_return.timestamp() if expected_return else None,
+                time_format=profile["time_format"],
             )
             state.upsert(entry)
             await render_and_push(client, canvas_ids, state.all(), datetime.now())
@@ -153,6 +157,26 @@ def register_handlers(
 
         await queue.submit(job)
         await respond(t(raw, "lang_set", name=LANGUAGE_NAMES[raw]))
+
+    async def do_format(text: str, command, respond):
+        raw = text.strip()
+        user_id = command["user_id"]
+        current_format = prefs.get_time_format(user_id) or "24"
+        current_locale = prefs.get_locale(user_id) or default_locale
+
+        if not raw:
+            await respond(t(current_locale, "format_current", format=current_format))
+            return
+
+        if raw not in ("12", "24"):
+            await respond(t(current_locale, "format_invalid", input=raw))
+            return
+
+        async def job():
+            prefs.set_time_format(user_id, raw)
+
+        await queue.submit(job)
+        await respond(t(current_locale, "format_set", format=raw))
 
     async def do_wait(text: str, command, client, respond):
         watcher_profile = await _fetch_user_profile(client, command["user_id"], default_locale, prefs)
@@ -195,6 +219,8 @@ def register_handlers(
             await do_wait(rest, command, client, respond)
         elif subcommand == "help":
             await do_help(command, client, respond)
+        elif subcommand == "format":
+            await do_format(rest, command, respond)
         else:
             await do_afk(text, command, client, respond)
 
@@ -223,7 +249,9 @@ def register_handlers(
 
         entry = await mark_extended(user_id, client)
         if entry:
-            message = t(locale, "extend_confirmation", time=fmt_time(entry.expected_return_ts, entry.tz))
+            message = t(
+                locale, "extend_confirmation", time=fmt_time(entry.expected_return_ts, entry.tz, entry.time_format)
+            )
         else:
             message = t(locale, "back_not_afk")
         await client.chat_update(

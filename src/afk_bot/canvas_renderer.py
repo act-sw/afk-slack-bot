@@ -7,33 +7,39 @@ from slack_sdk.web.async_client import AsyncWebClient
 from afk_bot.formatting import format_countdown, format_delta
 from afk_bot.state import AfkEntry
 
-_HEADERS = ["Name", "Back in", "AFK since", "Return at", "Comment"]
+_HEADERS_AWAY = ["Name", "Back in", "AFK since", "Estimated return", "Comment"]
+_HEADERS_RETURNED = ["Name", "Back in", "AFK since", "Returned at", "Comment"]
 
 
-def fmt_time(ts: float | None, tz_name: str) -> str:
+def fmt_time(ts: float | None, tz_name: str, time_format: str = "24") -> str:
     if ts is None:
         return "—"
     local = datetime.fromtimestamp(ts, tz=ZoneInfo(tz_name))
+    if time_format == "12":
+        hour12 = local.strftime("%I").lstrip("0") or "12"
+        return f"{hour12}:{local:%M} {local:%p} {local:%Z}".strip()
     return f"{local:%H:%M} {local:%Z}".strip()
 
 
-def _return_cell(entry: AfkEntry, now_ts: float) -> str:
-    base = fmt_time(entry.expected_return_ts, entry.tz)
+def _estimated_return_cell(entry: AfkEntry, now_ts: float) -> str:
+    if entry.expected_return_ts is None:
+        return "—"
 
-    if entry.returned_ts is not None:
-        if entry.expected_return_ts is None:
-            return f"✅ {fmt_time(entry.returned_ts, entry.tz)}"
-        diff = entry.returned_ts - entry.expected_return_ts
-        label = "less" if diff <= 0 else "late"
-        return f"{base} ✅ ({format_delta(diff)} {label})"
-
-    if entry.expected_return_ts is not None and entry.expected_return_ts < now_ts:
-        return f"{base} ⏰ ({format_delta(now_ts - entry.expected_return_ts)} late)"
-
-    if entry.expected_return_ts is not None:
-        return f"{base} (estimate)"
-
+    base = fmt_time(entry.expected_return_ts, entry.tz, entry.time_format)
+    if entry.expected_return_ts < now_ts:
+        base += f" ⏰ ({format_delta(now_ts - entry.expected_return_ts)} late)"
+    if entry.extended and entry.original_expected_return_ts not in (None, entry.expected_return_ts):
+        base += f" (original {fmt_time(entry.original_expected_return_ts, entry.tz, entry.time_format)})"
     return base
+
+
+def _returned_at_cell(entry: AfkEntry) -> str:
+    base = fmt_time(entry.returned_ts, entry.tz, entry.time_format)
+    if entry.expected_return_ts is None:
+        return f"✅ {base}"
+    diff = entry.returned_ts - entry.expected_return_ts
+    label = "less" if diff <= 0 else "late"
+    return f"{base} ✅ ({format_delta(diff)} {label})"
 
 
 def _back_in_seconds(entry: AfkEntry, now_ts: float) -> float | None:
@@ -65,16 +71,22 @@ def _name_cell(entry: AfkEntry, now_ts: float) -> str:
     return name_line
 
 
-def _render_row(entry: AfkEntry, now_ts: float) -> str:
+def _render_away_row(entry: AfkEntry, now_ts: float) -> str:
     return (
-        f"| {_name_cell(entry, now_ts)} | {_back_in_cell(entry, now_ts)} | {fmt_time(entry.start_ts, entry.tz)} "
-        f"| {_return_cell(entry, now_ts)} | {entry.comment or ''} |"
+        f"| {_name_cell(entry, now_ts)} | {_back_in_cell(entry, now_ts)} | {fmt_time(entry.start_ts, entry.tz, entry.time_format)} "
+        f"| {_estimated_return_cell(entry, now_ts)} | {entry.comment or ''} |"
     )
 
 
-def _render_table(entries: list[AfkEntry], now_ts: float) -> str:
-    header = f"| {' | '.join(_HEADERS)} |\n| {' | '.join(['---'] * len(_HEADERS))} |"
-    rows = [_render_row(entry, now_ts) for entry in entries]
+def _render_returned_row(entry: AfkEntry, now_ts: float) -> str:
+    return (
+        f"| {_name_cell(entry, now_ts)} | {_back_in_cell(entry, now_ts)} | {fmt_time(entry.start_ts, entry.tz, entry.time_format)} "
+        f"| {_returned_at_cell(entry)} | {entry.comment or ''} |"
+    )
+
+
+def _render_table(headers: list[str], rows: list[str]) -> str:
+    header = f"| {' | '.join(headers)} |\n| {' | '.join(['---'] * len(headers))} |"
     return header + "\n" + "\n".join(rows)
 
 
@@ -93,7 +105,7 @@ def render_markdown(entries: list[AfkEntry], now: datetime) -> str:
 
     if away:
         away.sort(key=lambda e: (v if (v := _back_in_seconds(e, now_ts)) is not None else math.inf))
-        parts.append(_render_table(away, now_ts))
+        parts.append(_render_table(_HEADERS_AWAY, [_render_away_row(e, now_ts) for e in away]))
     else:
         parts.append("_Weekend._" if now.weekday() >= 5 else "_Everyone's around._")
 
@@ -102,7 +114,7 @@ def render_markdown(entries: list[AfkEntry], now: datetime) -> str:
             key=lambda e: (v if (v := _back_in_seconds(e, now_ts)) is not None else -math.inf), reverse=True
         )
         parts.append("**Back in business:**")
-        parts.append(_render_table(returned, now_ts))
+        parts.append(_render_table(_HEADERS_RETURNED, [_render_returned_row(e, now_ts) for e in returned]))
 
     return "\n\n".join(parts)
 
