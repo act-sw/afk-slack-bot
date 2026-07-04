@@ -30,6 +30,14 @@ _STRINGS = {
         "wait_notification": "{name} вернулся(-ась).",
         "wait_extended_notification": "{name} нужно ещё полчаса.",
         "wait_target_notification": "{name} ждёт твоего возвращения — если получится, свяжись с ним(-ней) заранее.",
+        "help_text": (
+            "*Команды:*\n"
+            "• `/afk N [комментарий]` — отметить, что отошёл (N ≤12 — часы, >12 — минуты)\n"
+            "• `/afk back` — отметить возвращение\n"
+            "• `/afk lang [ru|en|pl|uk|be|es]` — язык бота (без аргумента — показать текущий)\n"
+            "• `/afk wait @user [@user2 ...]` — узнать, когда вернутся указанные люди\n"
+            "• `/afk help` — эта подсказка"
+        ),
     },
     "en": {
         "afk_confirmation_duration": "See you in {duration}!",
@@ -51,6 +59,14 @@ _STRINGS = {
         "wait_notification": "{name} is back.",
         "wait_extended_notification": "{name} needs 30 more minutes.",
         "wait_target_notification": "{name} is waiting for you to be back — reach out to them first if you can.",
+        "help_text": (
+            "*Commands:*\n"
+            "• `/afk N [comment]` — mark yourself away (N ≤12 = hours, >12 = minutes)\n"
+            "• `/afk back` — mark your return\n"
+            "• `/afk lang [ru|en|pl|uk|be|es]` — bot language (no argument shows current)\n"
+            "• `/afk wait @user [@user2 ...]` — get notified when the mentioned people are back\n"
+            "• `/afk help` — this message"
+        ),
     },
     "pl": {
         "afk_confirmation_duration": "Do zobaczenia za {duration}!",
@@ -72,6 +88,14 @@ _STRINGS = {
         "wait_notification": "{name} wrócił(a).",
         "wait_extended_notification": "{name} potrzebuje jeszcze 30 minut.",
         "wait_target_notification": "{name} czeka na Twój powrót — skontaktuj się z nim/nią najpierw, jeśli możesz.",
+        "help_text": (
+            "*Polecenia:*\n"
+            "• `/afk N [komentarz]` — oznacz nieobecność (N ≤12 = godziny, >12 = minuty)\n"
+            "• `/afk back` — oznacz powrót\n"
+            "• `/afk lang [ru|en|pl|uk|be|es]` — język bota (bez argumentu pokazuje obecny)\n"
+            "• `/afk wait @user [@user2 ...]` — dowiedz się, kiedy wskazane osoby wrócą\n"
+            "• `/afk help` — ta wiadomość"
+        ),
     },
     "uk": {
         "afk_confirmation_duration": "Побачимось через {duration}!",
@@ -93,6 +117,14 @@ _STRINGS = {
         "wait_notification": "{name} повернувся(-лася).",
         "wait_extended_notification": "{name} потрібно ще 30 хвилин.",
         "wait_target_notification": "{name} чекає на твоє повернення — якщо вийде, звʼяжись із ним(-нею) спершу.",
+        "help_text": (
+            "*Команди:*\n"
+            "• `/afk N [коментар]` — відмітити, що відійшов (N ≤12 — години, >12 — хвилини)\n"
+            "• `/afk back` — відмітити повернення\n"
+            "• `/afk lang [ru|en|pl|uk|be|es]` — мова бота (без аргументу — показати поточну)\n"
+            "• `/afk wait @user [@user2 ...]` — дізнатись, коли повернуться вказані люди\n"
+            "• `/afk help` — ця підказка"
+        ),
     },
     "be": {
         "afk_confirmation_duration": "Пабачымся праз {duration}!",
@@ -114,6 +146,14 @@ _STRINGS = {
         "wait_notification": "{name} вярнуўся(-лася).",
         "wait_extended_notification": "{name} трэба яшчэ 30 хвілін.",
         "wait_target_notification": "{name} чакае твайго вяртання — калі атрымаецца, звяжыся з ім(-ёй) спачатку.",
+        "help_text": (
+            "*Каманды:*\n"
+            "• `/afk N [каментар]` — адзначыць, што адышоў (N ≤12 — гадзіны, >12 — хвіліны)\n"
+            "• `/afk back` — адзначыць вяртанне\n"
+            "• `/afk lang [ru|en|pl|uk|be|es]` — мова бота (без аргумента — паказаць бягучую)\n"
+            "• `/afk wait @user [@user2 ...]` — даведацца, калі вернуцца ўказаныя людзі\n"
+            "• `/afk help` — гэтая падказка"
+        ),
     },
     "es": {
         "afk_confirmation_duration": "¡Nos vemos en {duration}!",
@@ -135,6 +175,14 @@ _STRINGS = {
         "wait_notification": "{name} ha vuelto.",
         "wait_extended_notification": "{name} necesita 30 minutos más.",
         "wait_target_notification": "{name} está esperando a que vuelvas — contacta con él/ella primero si puedes.",
+        "help_text": (
+            "*Comandos:*\n"
+            "• `/afk N [comentario]` — márcate como ausente (N ≤12 = horas, >12 = minutos)\n"
+            "• `/afk back` — marca tu regreso\n"
+            "• `/afk lang [ru|en|pl|uk|be|es]` — idioma del bot (sin argumento muestra el actual)\n"
+            "• `/afk wait @user [@user2 ...]` — recibe un aviso cuando vuelvan las personas mencionadas\n"
+            "• `/afk help` — este mensaje"
+        ),
     },
 }
 

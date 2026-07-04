@@ -176,6 +176,10 @@ def register_handlers(
                 text=t(target_profile["locale"], "wait_target_notification", name=watcher_profile["name"]),
             )
 
+    async def do_help(command, client, respond):
+        profile = await _fetch_user_profile(client, command["user_id"], default_locale, prefs)
+        await respond(t(profile["locale"], "help_text"))
+
     @app.command("/afk")
     async def handle_afk_command(ack, command, client, respond):
         await ack()
@@ -189,6 +193,8 @@ def register_handlers(
             await do_lang(rest, command, respond)
         elif subcommand == "wait":
             await do_wait(rest, command, client, respond)
+        elif subcommand == "help":
+            await do_help(command, client, respond)
         else:
             await do_afk(text, command, client, respond)
 

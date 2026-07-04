@@ -44,10 +44,18 @@ def _back_in_cell(entry: AfkEntry, now_ts: float) -> str:
     return base
 
 
-def _name_cell(entry: AfkEntry) -> str:
+def _name_cell(entry: AfkEntry, now_ts: float) -> str:
+    if entry.returned_ts is not None:
+        icon = " ✅"
+    elif entry.expected_return_ts is not None and entry.expected_return_ts < now_ts:
+        icon = " ⏰"
+    else:
+        icon = ""
+
+    name_line = f"{entry.name}{icon}"
     if entry.extended and entry.returned_ts is None:
-        return f"{entry.name}<br>_needs 30 minutes_"
-    return entry.name
+        return f"{name_line}<br>_needs 30 minutes_"
+    return name_line
 
 
 def _sort_key(entry: AfkEntry) -> float:
@@ -58,12 +66,13 @@ def render_markdown(entries: list[AfkEntry], now: datetime) -> str:
     header_line = f"**Away from keyboard:** {now:%a}, {now:%b}-{now.day}"
 
     if not entries:
-        return f"{header_line}\n\n_Everyone's around._"
+        empty_text = "_Weekend._" if now.weekday() >= 5 else "_Everyone's around._"
+        return f"{header_line}\n\n{empty_text}"
 
     now_ts = now.timestamp()
     header = f"| {' | '.join(_HEADERS)} |\n| {' | '.join(['---'] * len(_HEADERS))} |"
     rows = [
-        f"| {_name_cell(entry)} | {_back_in_cell(entry, now_ts)} | {fmt_time(entry.start_ts, entry.tz)} "
+        f"| {_name_cell(entry, now_ts)} | {_back_in_cell(entry, now_ts)} | {fmt_time(entry.start_ts, entry.tz)} "
         f"| {_return_cell(entry, now_ts)} | {entry.comment or ''} |"
         for entry in sorted(entries, key=_sort_key)
     ]
