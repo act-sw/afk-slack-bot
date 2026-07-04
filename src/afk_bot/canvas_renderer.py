@@ -43,10 +43,15 @@ def _returned_at_cell(entry: AfkEntry) -> str:
 
 
 def _back_in_seconds(entry: AfkEntry, now_ts: float) -> float | None:
+    """Live countdown to (or since) the estimated return, always relative to now.
+
+    Unlike the "Returned at" column's frozen early/late delta, this keeps
+    ticking after a return too — e.g. an entry with a 0m delta reads "0m"
+    the moment they're back and "- 1m" a minute later.
+    """
     if entry.expected_return_ts is None:
         return None
-    reference_ts = entry.returned_ts if entry.returned_ts is not None else now_ts
-    return entry.expected_return_ts - reference_ts
+    return entry.expected_return_ts - now_ts
 
 
 def _back_in_cell(entry: AfkEntry, now_ts: float) -> str:
