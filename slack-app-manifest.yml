@@ -8,8 +8,8 @@ features:
     always_online: true
   slash_commands:
     - command: /afk
-      description: "AFK bot - track who's away without a separate channel. /afk N [comment]: mark yourself away (N<=12 = hours, N>12 = minutes). /afk back: mark your return. /afk lang ru|en|pl|uk|be|es: set the bot's reply language (independent of the shared canvas, which stays English). /afk wait @user [@user2 ...]: get a DM when they mark their return. /afk help: show this command list."
-      usage_hint: "N [comment] | back | lang [code] | wait @user | help"
+      description: "AFK bot - track who's away without a separate channel. /afk N [comment]: mark yourself away (N<=12 = hours, N>12 = minutes). /afk until 14|1400|14:00|2pm [comment]: away until a specific time in your own timezone. /afk back: mark your return. /afk lang ru|en|pl|uk|be|es: set the bot's reply language (independent of the shared canvas, which stays English). /afk format 12|24: time display format. /afk wait @user [@user2 ...]: get a DM when they mark their return. /afk help: show this command list."
+      usage_hint: "N|until <time> [comment] | back | lang [code] | format [12|24] | wait @user | help"
       should_escape: true
   interactivity:
     is_enabled: true
