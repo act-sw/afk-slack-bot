@@ -6,6 +6,9 @@ _UNTIL_RE = re.compile(
     r"^until\s+(?:(\d{2})(\d{2})|(\d{1,2}):(\d{2})|(\d{1,2}))\s*(am|pm)?",
     re.IGNORECASE,
 )
+# A bare "H:MM" (with colon) is unambiguously a clock time even without the
+# "until" keyword — a plain duration number never contains a colon.
+_BARE_CLOCK_RE = re.compile(r"^(\d{1,2}):(\d{2})\s*(am|pm)?", re.IGNORECASE)
 _NUMBER_RE = re.compile(r"\d+(?:[.,]\d+)?")
 
 _HOURS_MAX = 12
@@ -54,6 +57,9 @@ def parse_afk_text(text: str, now: datetime) -> tuple[datetime | None, str]:
       Without an am/pm suffix, an hour in 1-12 is ambiguous: it resolves to
       whichever of the two 12-hour readings is soonest (e.g. "until 2" is
       14:00 today if that hasn't passed yet, else 02:00 the next occurrence).
+      A bare "H:MM" (e.g. "23:55", "2:30pm") is recognized as a clock time
+      the same way even without the "until" keyword, since a plain duration
+      number never contains a colon.
     - Otherwise, the first number in the text is the duration: <=12 is hours,
       >12 is minutes, rounded up to a whole minute (comma or dot as decimal
       separator). Everything after that number is the comment.
@@ -77,6 +83,13 @@ def parse_afk_text(text: str, now: datetime) -> tuple[datetime | None, str]:
         resolved = _resolve_until(now, hour, minute, suffix)
         if resolved is not None:
             return resolved, text[until_match.end() :].strip()
+
+    bare_clock_match = _BARE_CLOCK_RE.match(text)
+    if bare_clock_match:
+        hour, minute, suffix = bare_clock_match.groups()
+        resolved = _resolve_until(now, int(hour), int(minute), suffix)
+        if resolved is not None:
+            return resolved, text[bare_clock_match.end() :].strip()
 
     number_match = _NUMBER_RE.search(text)
     if not number_match:
