@@ -1,6 +1,8 @@
 import asyncio
 from typing import Awaitable, Callable
 
+JOB_TIMEOUT_SECONDS = 60
+
 
 class SingleWriterQueue:
     """Serializes async jobs through one worker task.
@@ -22,7 +24,10 @@ class SingleWriterQueue:
         while True:
             job, future = await self._queue.get()
             try:
-                result = await job()
+                # A hung network call here (e.g. Slack API) would otherwise
+                # wedge this single worker forever, since every job — including
+                # the daily cleanup — is serialized through it.
+                result = await asyncio.wait_for(job(), timeout=JOB_TIMEOUT_SECONDS)
                 if not future.done():
                     future.set_result(result)
             except Exception as exc:  # noqa: BLE001 - propagate to caller, keep worker alive
