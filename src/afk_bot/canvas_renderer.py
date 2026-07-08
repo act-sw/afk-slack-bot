@@ -103,8 +103,13 @@ def render_markdown(entries: list[AfkEntry], now: datetime) -> str:
     away = [e for e in entries if e.returned_ts is None]
     returned = [e for e in entries if e.returned_ts is not None]
 
+    # A plain "" part collapses away in Canvas's markdown rendering — a
+    # non-breaking space gives it real (invisible) content so the blank
+    # line actually shows up.
+    blank = " "
+
     if not away and not returned:
-        return "\n\n".join([header_line, "", empty_text])
+        return "\n\n".join([header_line, blank, empty_text])
 
     now_ts = now.timestamp()
     parts = [header_line]
@@ -113,12 +118,12 @@ def render_markdown(entries: list[AfkEntry], now: datetime) -> str:
         away.sort(key=lambda e: (v if (v := _back_in_seconds_away(e, now_ts)) is not None else math.inf))
         parts.append(_render_table(_HEADERS_AWAY, [_render_away_row(e, now_ts) for e in away]))
     else:
-        parts.append("")
+        parts.append(blank)
         parts.append(empty_text)
 
     if returned:
         returned.sort(key=lambda e: _back_in_seconds_returned(e, now_ts), reverse=True)
-        parts.append("")
+        parts.append(blank)
         parts.append("**Back in business:**")
         parts.append(_render_table(_HEADERS_RETURNED, [_render_returned_row(e, now_ts) for e in returned]))
 
