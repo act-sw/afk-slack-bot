@@ -42,22 +42,21 @@ def _returned_at_cell(entry: AfkEntry) -> str:
     return f"{base} ✅ ({format_delta(diff)} {label})"
 
 
-def _back_in_seconds(entry: AfkEntry, now_ts: float) -> float | None:
-    """Live countdown to (or since) the estimated return, always relative to now.
-
-    Unlike the "Returned at" column's frozen early/late delta, this keeps
-    ticking after a return too — e.g. an entry with a 0m delta reads "0m"
-    the moment they're back and "- 1m" a minute later.
-    """
+def _back_in_seconds_away(entry: AfkEntry, now_ts: float) -> float | None:
+    """Live countdown to the estimated return, relative to now."""
     if entry.expected_return_ts is None:
         return None
     return entry.expected_return_ts - now_ts
 
 
-def _back_in_cell(entry: AfkEntry, now_ts: float) -> str:
-    seconds = _back_in_seconds(entry, now_ts)
+def _back_in_seconds_returned(entry: AfkEntry, now_ts: float) -> float:
+    """Live "time since actual return" — 0m the moment they're back, - 1m a minute later."""
+    return entry.returned_ts - now_ts
+
+
+def _back_in_cell(seconds: float | None, extended: bool) -> str:
     base = "—" if seconds is None else format_countdown(seconds)
-    if entry.extended and entry.returned_ts is None:
+    if extended:
         return f"⏰{base}"
     return base
 
@@ -77,15 +76,17 @@ def _name_cell(entry: AfkEntry, now_ts: float) -> str:
 
 
 def _render_away_row(entry: AfkEntry, now_ts: float) -> str:
+    back_in = _back_in_cell(_back_in_seconds_away(entry, now_ts), entry.extended)
     return (
-        f"| {_name_cell(entry, now_ts)} | {_back_in_cell(entry, now_ts)} | {fmt_time(entry.start_ts, entry.tz, entry.time_format)} "
+        f"| {_name_cell(entry, now_ts)} | {back_in} | {fmt_time(entry.start_ts, entry.tz, entry.time_format)} "
         f"| {_estimated_return_cell(entry, now_ts)} | {entry.comment or ''} |"
     )
 
 
 def _render_returned_row(entry: AfkEntry, now_ts: float) -> str:
+    back_in = _back_in_cell(_back_in_seconds_returned(entry, now_ts), extended=False)
     return (
-        f"| {_name_cell(entry, now_ts)} | {_back_in_cell(entry, now_ts)} | {fmt_time(entry.start_ts, entry.tz, entry.time_format)} "
+        f"| {_name_cell(entry, now_ts)} | {back_in} | {fmt_time(entry.start_ts, entry.tz, entry.time_format)} "
         f"| {_returned_at_cell(entry)} | {entry.comment or ''} |"
     )
 
@@ -97,27 +98,27 @@ def _render_table(headers: list[str], rows: list[str]) -> str:
 
 def render_markdown(entries: list[AfkEntry], now: datetime) -> str:
     header_line = f"**Away from keyboard:** {now:%a}, {now:%b}-{now.day}"
+    empty_text = "_Weekend._" if now.weekday() >= 5 else "_Everyone's around._"
 
     away = [e for e in entries if e.returned_ts is None]
     returned = [e for e in entries if e.returned_ts is not None]
 
     if not away and not returned:
-        empty_text = "_Weekend._" if now.weekday() >= 5 else "_Everyone's around._"
-        return f"{header_line}\n\n{empty_text}"
+        return "\n\n".join([header_line, "", empty_text])
 
     now_ts = now.timestamp()
     parts = [header_line]
 
     if away:
-        away.sort(key=lambda e: (v if (v := _back_in_seconds(e, now_ts)) is not None else math.inf))
+        away.sort(key=lambda e: (v if (v := _back_in_seconds_away(e, now_ts)) is not None else math.inf))
         parts.append(_render_table(_HEADERS_AWAY, [_render_away_row(e, now_ts) for e in away]))
     else:
-        parts.append("_Weekend._" if now.weekday() >= 5 else "_Everyone's around._")
+        parts.append("")
+        parts.append(empty_text)
 
     if returned:
-        returned.sort(
-            key=lambda e: (v if (v := _back_in_seconds(e, now_ts)) is not None else -math.inf), reverse=True
-        )
+        returned.sort(key=lambda e: _back_in_seconds_returned(e, now_ts), reverse=True)
+        parts.append("")
         parts.append("**Back in business:**")
         parts.append(_render_table(_HEADERS_RETURNED, [_render_returned_row(e, now_ts) for e in returned]))
 
