@@ -35,7 +35,8 @@ _STRINGS = {
         "wait_target_notification": "{name} ждёт твоего возвращения — если получится, свяжись с ним(-ней) заранее.",
         "help_text": (
             "*Команды:*\n"
-            "• `/afk N [комментарий]` — отметить, что отошёл (N ≤12 — часы, >12 — минуты)\n"
+            "• `/afk N[h|m|...] [комментарий]` — отметить, что отошёл (без единицы: N ≤12 — часы, "
+            ">12 — минуты; можно явно указать h/ч/час/год(=година), m/мин/хв и т.п.)\n"
             "• `/afk until 14|1400|14:00|2pm [комментарий]` — уйти до конкретного времени "
             "(в твоём часовом поясе; без am/pm число ≤12 — ближайшее подходящее время)\n"
             "• `/afk back` — отметить возвращение\n"
@@ -44,7 +45,7 @@ _STRINGS = {
             "• `/afk wait @user [@user2 ...]` — узнать, когда вернутся указанные люди\n"
             "• `/afk help` — эта подсказка\n\n"
             "*Примеры:*\n"
-            "`/afk 1.5 обед` · `/afk 90` · `/afk until 14` · `/afk until 2pm` · `/afk back` · "
+            "`/afk 1.5 обед` · `/afk 90` · `/afk 13h` · `/afk until 14` · `/afk until 2pm` · `/afk back` · "
             "`/afk lang en` · `/afk format 12` · `/afk wait @имя`"
         ),
     },
@@ -73,7 +74,8 @@ _STRINGS = {
         "wait_target_notification": "{name} is waiting for you to be back — reach out to them first if you can.",
         "help_text": (
             "*Commands:*\n"
-            "• `/afk N [comment]` — mark yourself away (N ≤12 = hours, >12 = minutes)\n"
+            "• `/afk N[h|m|...] [comment]` — mark yourself away (no unit: N ≤12 = hours, >12 = "
+            "minutes; or say it explicitly with h/hr/hour, m/min/minute etc.)\n"
             "• `/afk until 14|1400|14:00|2pm [comment]` — away until a specific time "
             "(in your own timezone; without am/pm, a number ≤12 resolves to whichever reading is soonest)\n"
             "• `/afk back` — mark your return\n"
@@ -82,7 +84,7 @@ _STRINGS = {
             "• `/afk wait @user [@user2 ...]` — get notified when the mentioned people are back\n"
             "• `/afk help` — this message\n\n"
             "*Examples:*\n"
-            "`/afk 1.5 lunch` · `/afk 90` · `/afk until 14` · `/afk until 2pm` · `/afk back` · "
+            "`/afk 1.5 lunch` · `/afk 90` · `/afk 13h` · `/afk until 14` · `/afk until 2pm` · `/afk back` · "
             "`/afk lang en` · `/afk format 12` · `/afk wait @name`"
         ),
     },
@@ -111,7 +113,8 @@ _STRINGS = {
         "wait_target_notification": "{name} czeka na Twój powrót — skontaktuj się z nim/nią najpierw, jeśli możesz.",
         "help_text": (
             "*Polecenia:*\n"
-            "• `/afk N [komentarz]` — oznacz nieobecność (N ≤12 = godziny, >12 = minuty)\n"
+            "• `/afk N[h|m|...] [komentarz]` — oznacz nieobecność (bez jednostki: N ≤12 = godziny, "
+            ">12 = minuty; można podać wprost h/godz/godzina, m/min/minuta itp.)\n"
             "• `/afk until 14|1400|14:00|2pm [komentarz]` — nieobecność do konkretnej godziny "
             "(w Twojej strefie czasowej; bez am/pm liczba ≤12 to najbliższa pasująca godzina)\n"
             "• `/afk back` — oznacz powrót\n"
@@ -120,7 +123,7 @@ _STRINGS = {
             "• `/afk wait @user [@user2 ...]` — dowiedz się, kiedy wskazane osoby wrócą\n"
             "• `/afk help` — ta wiadomość\n\n"
             "*Przykłady:*\n"
-            "`/afk 1.5 obiad` · `/afk 90` · `/afk until 14` · `/afk until 2pm` · `/afk back` · "
+            "`/afk 1.5 obiad` · `/afk 90` · `/afk 13h` · `/afk until 14` · `/afk until 2pm` · `/afk back` · "
             "`/afk lang en` · `/afk format 12` · `/afk wait @imię`"
         ),
     },
@@ -149,7 +152,8 @@ _STRINGS = {
         "wait_target_notification": "{name} чекає на твоє повернення — якщо вийде, звʼяжись із ним(-нею) спершу.",
         "help_text": (
             "*Команди:*\n"
-            "• `/afk N [коментар]` — відмітити, що відійшов (N ≤12 — години, >12 — хвилини)\n"
+            "• `/afk N[h|m|...] [коментар]` — відмітити, що відійшов (без одиниці: N ≤12 — години, "
+            ">12 — хвилини; можна явно вказати h/год/година, m/хв/хвилина тощо)\n"
             "• `/afk until 14|1400|14:00|2pm [коментар]` — відійти до конкретного часу "
             "(у твоєму часовому поясі; без am/pm число ≤12 — найближчий відповідний час)\n"
             "• `/afk back` — відмітити повернення\n"
@@ -158,7 +162,7 @@ _STRINGS = {
             "• `/afk wait @user [@user2 ...]` — дізнатись, коли повернуться вказані люди\n"
             "• `/afk help` — ця підказка\n\n"
             "*Приклади:*\n"
-            "`/afk 1.5 обід` · `/afk 90` · `/afk until 14` · `/afk until 2pm` · `/afk back` · "
+            "`/afk 1.5 обід` · `/afk 90` · `/afk 13h` · `/afk until 14` · `/afk until 2pm` · `/afk back` · "
             "`/afk lang en` · `/afk format 12` · `/afk wait @ім'я`"
         ),
     },
@@ -187,7 +191,8 @@ _STRINGS = {
         "wait_target_notification": "{name} чакае твайго вяртання — калі атрымаецца, звяжыся з ім(-ёй) спачатку.",
         "help_text": (
             "*Каманды:*\n"
-            "• `/afk N [каментар]` — адзначыць, што адышоў (N ≤12 — гадзіны, >12 — хвіліны)\n"
+            "• `/afk N[h|m|...] [каментар]` — адзначыць, што адышоў (без адзінкі: N ≤12 — гадзіны, "
+            ">12 — хвіліны; можна ўказаць явна h/гадз/гадзіна, m/хв/хвіліна і г.д.)\n"
             "• `/afk until 14|1400|14:00|2pm [каментар]` — адсутнічаць да канкрэтнага часу "
             "(у тваім часавым поясе; без am/pm лік ≤12 — бліжэйшы прыдатны час)\n"
             "• `/afk back` — адзначыць вяртанне\n"
@@ -196,7 +201,7 @@ _STRINGS = {
             "• `/afk wait @user [@user2 ...]` — даведацца, калі вернуцца ўказаныя людзі\n"
             "• `/afk help` — гэтая падказка\n\n"
             "*Прыклады:*\n"
-            "`/afk 1.5 абед` · `/afk 90` · `/afk until 14` · `/afk until 2pm` · `/afk back` · "
+            "`/afk 1.5 абед` · `/afk 90` · `/afk 13h` · `/afk until 14` · `/afk until 2pm` · `/afk back` · "
             "`/afk lang en` · `/afk format 12` · `/afk wait @імя`"
         ),
     },
@@ -225,7 +230,8 @@ _STRINGS = {
         "wait_target_notification": "{name} está esperando a que vuelvas — contacta con él/ella primero si puedes.",
         "help_text": (
             "*Comandos:*\n"
-            "• `/afk N [comentario]` — márcate como ausente (N ≤12 = horas, >12 = minutos)\n"
+            "• `/afk N[h|m|...] [comentario]` — márcate como ausente (sin unidad: N ≤12 = horas, "
+            ">12 = minutos; o indícalo con h/hora, m/min/minuto, etc.)\n"
             "• `/afk until 14|1400|14:00|2pm [comentario]` — ausente hasta una hora concreta "
             "(en tu propia zona horaria; sin am/pm, un número ≤12 se resuelve a la lectura más próxima)\n"
             "• `/afk back` — marca tu regreso\n"
@@ -234,7 +240,7 @@ _STRINGS = {
             "• `/afk wait @user [@user2 ...]` — recibe un aviso cuando vuelvan las personas mencionadas\n"
             "• `/afk help` — este mensaje\n\n"
             "*Ejemplos:*\n"
-            "`/afk 1.5 almuerzo` · `/afk 90` · `/afk until 14` · `/afk until 2pm` · `/afk back` · "
+            "`/afk 1.5 almuerzo` · `/afk 90` · `/afk 13h` · `/afk until 14` · `/afk until 2pm` · `/afk back` · "
             "`/afk lang en` · `/afk format 12` · `/afk wait @nombre`"
         ),
     },

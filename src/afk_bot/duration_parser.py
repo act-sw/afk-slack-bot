@@ -10,8 +10,30 @@ _UNTIL_RE = re.compile(
 # "until" keyword — a plain duration number never contains a colon.
 _BARE_CLOCK_RE = re.compile(r"^(\d{1,2}):(\d{2})\s*(am|pm)?", re.IGNORECASE)
 _NUMBER_RE = re.compile(r"\d+(?:[.,]\d+)?")
+_UNIT_WORD_RE = re.compile(r"^\s*([A-Za-zА-Яа-яЁёІіЇїЄєҐґ]+)")
 
 _HOURS_MAX = 12
+
+# An explicit unit overrides the <=12h/>12m magnitude guess entirely — e.g.
+# "13h" is 13 hours (would otherwise misread as 13 minutes), and "5m" is
+# 5 minutes (would otherwise misread as 5 hours). Ukrainian "год" is short
+# for "година" (hour) — not "год" the Russian word for "year".
+_HOUR_UNITS = {
+    "h", "hr", "hrs", "hour", "hours",
+    "ч", "час", "часа", "часов",
+    "год", "година", "години", "годину", "годин",
+    "гадзіна", "гадзіны", "гадзін", "гадзіну",
+    "godz", "godzina", "godziny", "godzin", "godzinę",
+    "hora", "horas",
+}
+_MINUTE_UNITS = {
+    "m", "min", "mins", "minute", "minutes",
+    "мин", "минута", "минуты", "минут", "минуту",
+    "хв", "хвилина", "хвилини", "хвилин", "хвилину",
+    "хвіліна", "хвіліны", "хвілін", "хвіліну",
+    "minut", "minuta", "minuty", "minutę",
+    "minuto", "minutos",
+}
 
 
 def _resolve_until(now: datetime, hour: int, minute: int, suffix: str | None) -> datetime | None:
@@ -60,9 +82,13 @@ def parse_afk_text(text: str, now: datetime) -> tuple[datetime | None, str]:
       A bare "H:MM" (e.g. "23:55", "2:30pm") is recognized as a clock time
       the same way even without the "until" keyword, since a plain duration
       number never contains a colon.
-    - Otherwise, the first number in the text is the duration: <=12 is hours,
-      >12 is minutes, rounded up to a whole minute (comma or dot as decimal
-      separator). Everything after that number is the comment.
+    - Otherwise, the first number in the text is the duration. An explicit
+      unit right after it (attached or space-separated — "h"/"hr"/"час"/
+      "година"/"год"/... for hours, "m"/"min"/"мин"/"хв"/... for minutes)
+      overrides the default guess; without one, <=12 is hours and >12 is
+      minutes. Minute-valued results round up to a whole minute (comma or
+      dot as decimal separator). Everything after the number (and the unit,
+      if one was recognized) is the comment.
     - No number at all means an open-ended AFK (no expected return time) and
       the whole text becomes the comment.
     """
@@ -96,6 +122,26 @@ def parse_afk_text(text: str, now: datetime) -> tuple[datetime | None, str]:
         return None, text
 
     value = float(number_match.group().replace(",", "."))
-    minutes = value * 60 if value <= _HOURS_MAX else math.ceil(value)
-    comment = text[number_match.end() :].strip()
+    rest = text[number_match.end() :]
+
+    unit_end = 0
+    unit_match = _UNIT_WORD_RE.match(rest)
+    unit_kind = None
+    if unit_match:
+        word = unit_match.group(1).lower()
+        if word in _HOUR_UNITS:
+            unit_kind = "hour"
+            unit_end = unit_match.end()
+        elif word in _MINUTE_UNITS:
+            unit_kind = "minute"
+            unit_end = unit_match.end()
+
+    if unit_kind == "hour":
+        minutes = value * 60
+    elif unit_kind == "minute":
+        minutes = math.ceil(value)
+    else:
+        minutes = value * 60 if value <= _HOURS_MAX else math.ceil(value)
+
+    comment = rest[unit_end:].strip()
     return now + timedelta(minutes=minutes), comment
