@@ -1,125 +1,161 @@
 # afk-slack-bot
 
-Slack-бот для менеджмента AFK-сообщений команды без отдельного чата в Slack.
-Всё живёт в одной слеш-команде `/afk` с подкомандами:
+![License](https://img.shields.io/badge/license-MIT-green)
+![Python](https://img.shields.io/badge/python-3.12%2B-brightgreen)
+![Slack Bolt](https://img.shields.io/badge/Slack-Bolt%20for%20Python-4A154B)
 
-- `/afk 1.5 [комментарий]` — отметить, что отошёл; пишет/обновляет запись в
-  Canvas (можно сразу в нескольких — см. `CANVAS_IDS`)
-- `/afk back` — досрочное возвращение
-- `/afk lang [ru|en|pl|uk|be|es]` — выбрать язык общения с ботом (без
-  аргумента — показывает текущий)
-- `/afk wait @user [@user2 ...]` — попросить бота черкнуть в личку, когда
-  указанные люди отметят возвращение
-- `/afk format [12|24]` — формат отображения времени везде (без аргумента —
-  показывает текущий; по умолчанию 24-часовой)
-- `/afk help` — краткая справка по командам
+A Slack bot for tracking who's away from keyboard, without needing a dedicated
+channel for it. Everything lives in one `/afk` slash command with
+subcommands, and a live-updating Canvas that the whole team can glance at.
 
-Формат длительности: первое число в тексте, опционально с единицей сразу
-после него (слитно или через пробел) — `h`/`hr`/`час`/`година`/`год`
-(укр. "год" = час, не год!) для часов, `m`/`min`/`мин`/`хв` для минут (полный
-список — во всех 6 языках). Без единицы действует эвристика `<=12` — часы,
-`>12` — минуты; с явной единицей она не действует (`13h` — 13 часов, `5m` —
-5 минут, а не наоборот). Дробные минуты округляются вверх до целых; `,` и `.`
-как разделитель дробной части. Всё после числа (и единицы, если она была
-распознана) — свободный комментарий. Без числа — открытый AFK (весь текст
-уходит в комментарий). Примеры: `1.5` (90 минут), `90` (90 минут), `13h`
-(13 часов), `5m` (5 минут), `2 обед`.
+## 📖 Description
 
-Отдельно поддерживается `until <время> [комментарий]` — время до которого
-человек отсутствует, в **его собственном** часовом поясе. Принимает `14`,
-`1400`, `14:00`, а также 12-часовой формат с суффиксом `2pm`/`2:30am`. Если
-суффикс не указан, а число ≤12 — оно неоднозначно (может быть и AM, и PM):
-бот берёт то толкование, которое наступит раньше (`until 2` в 10 утра — это
-14:00 сегодня; та же команда в 15:00 — это уже 02:00 следующего дня, так как
-14:00 уже прошло). Примеры: `until 14`, `until 1400`, `until 2pm`.
+Instead of a channel full of "brb 15 min" messages, `afk-slack-bot` keeps a
+single shared Canvas with two tables — who's currently away (sorted by
+soonest back) and who's already back (sorted by most recently returned).
+Every AFK, return, or extension is reflected there within a minute, in each
+viewer's own timezone and time format.
 
-Канвас — две таблицы: активные (сортировка по возрастанию `Back in`) и
-"**Back in business:**" — уже вернувшиеся (сортировка по убыванию `Back in`).
-Вернувшиеся не удаляются — помечаются зелёной галочкой с тем, насколько
-раньше/позже расчётного времени человек вернулся. Если человек после
-возврата снова уходит в AFK в тот же день — это отдельная новая строка, а не
-перезапись прежней. Все записи (и активные, и уже отмеченные вернувшимися)
-очищаются раз в сутки — `DAILY_CLEANUP_HOUR`/`DAILY_CLEANUP_MINUTE` по
-`TIMEZONE` (по умолчанию 4:00 UTC). Канвас перерисовывается каждую минуту
-(на границе секунд `:00`), плюс сразу по любому событию (`/afk`, `/afk back`,
-кнопки).
+The bot runs in Socket Mode, so it needs no public HTTPS endpoint — just a
+Slack app with a bot token and an app-level token.
 
-Если время возврата истекло, а `/afk back` не была вызвана, в течение минуты
-бот шлёт (один раз на просрочку) пользователю личное сообщение с двумя
-кнопками: "Я уже здесь" (регистрирует возврат так же, как `/afk back`) и
-"Мне нужно ещё полчаса" (сдвигает расчётное время на 30 минут; в канвасе у
-записи появляется пометка `needs 30 minutes`, будильник в `Back in`, а в
-колонке `Estimated return` — исходное время в скобках, `(original 14:00)`,
-даже если продлений было несколько — до фактического возврата; наблюдателям
-из `/afk wait` тоже приходит уведомление о продлении).
+## ✨ Features
 
-Текст команд/сообщений локализуется под язык бота для конкретного
-пользователя: по умолчанию берётся язык интерфейса его Slack-аккаунта, но
-можно явно переопределить командой `/afk lang ru|en|pl|uk|be|es`. Канвас
-(общий для всех, кто на него смотрит) — всегда на английском вне зависимости
-от языка бота у конкретного человека.
+- **One command, several subcommands**: `/afk`, `/afk back`, `/afk lang`,
+  `/afk format`, `/afk wait`, `/afk help`.
+- **Flexible duration parsing**: `/afk 1.5`, `/afk 90`, `/afk 13h`,
+  `/afk until 14:00`, or an open-ended `/afk lunch` with no time at all.
+- **Per-user locale and time format**: language defaults to the user's own
+  Slack interface language (overridable), time format defaults to 24-hour.
+  Six locales are bundled: `ru`, `en`, `pl`, `uk`, `be`, `es`, with correct
+  Slavic pluralization and grammatical case for duration phrases.
+- **Overdue reminders**: if the expected return time passes without
+  `/afk back`, the bot DMs the person a one-time reminder with two buttons —
+  "I'm here" and "I need 30 more minutes" — and reflects the extension on the
+  Canvas (⏰ marker, original ETA kept in parentheses).
+- **`/afk wait @user`**: get DMed when someone you're waiting on returns (or
+  needs more time); the watched person is notified too, so they know someone
+  is waiting.
+- **Multiple Canvases**: the same state can be mirrored to several Canvases
+  at once (e.g. one per channel), configured via a comma-separated list.
 
-Время в канвасе и в напоминаниях показывается в часовом поясе конкретного
-человека с аббревиатурой (`16:13 MSK`), а не системном времени сервера. Имя в
-канвасе — Slack display name/real name, а не логин.
+## 🚀 Commands
 
-Стек: Python, [Bolt for Python](https://slack.dev/bolt-python/) в Socket Mode
-(не требует публичного HTTPS-эндпоинта).
+- `/afk N[unit] [comment]` — mark yourself away. Without a unit, `N ≤ 12` is
+  read as hours and `N > 12` as minutes; an explicit unit overrides that
+  guess — `h`/`hr`/`hour`, `ч`/`час`, `год`/`година` (Ukrainian "год" is an
+  hour, not a year!), `godz`/`godzina`, `hora` for hours, `m`/`min`/`minute`,
+  `мин`, `хв`/`хвилина`, `minut`/`minuta` for minutes. Fractional values are
+  accepted (`,` or `.` as the decimal separator) and round up to a whole
+  minute. Everything after the number (and unit, if recognized) becomes a
+  free-form comment. With no number at all, it's an open-ended AFK and the
+  whole text becomes the comment.
+- `/afk until <time> [comment]` — away until a specific time, in the user's
+  **own** timezone. Accepts `14`, `1400`, `14:00`, or a 12-hour value with an
+  `am`/`pm` suffix (`2pm`, `2:30am`). A bare `H:MM` clock time (e.g. `23:55`,
+  `2:30pm`) is also recognized without the `until` keyword, since a plain
+  duration number never contains a colon. Without an am/pm suffix, an hour
+  in 1–12 is ambiguous — the bot resolves it to whichever of the two
+  12-hour readings comes soonest (`until 2` at 10:00 means 14:00 today; the
+  same command at 15:00 means 02:00 the next day, since 14:00 has already
+  passed).
+- `/afk back` — mark your return.
+- `/afk lang [ru|en|pl|uk|be|es]` — set the bot's reply language for you
+  (no argument shows the current one).
+- `/afk format [12|24]` — set the time display format everywhere (no
+  argument shows the current one; defaults to 24-hour).
+- `/afk wait @user [@user2 ...]` — get a DM when the mentioned people mark
+  their return (or need more time); they get a heads-up DM too.
+- `/afk help` — a short command reference.
 
-## Архитектурные инварианты
+Examples: `/afk 1.5 lunch` · `/afk 90` · `/afk 13h` · `/afk until 14` ·
+`/afk until 2pm` · `/afk back` · `/afk lang en` · `/afk format 12` ·
+`/afk wait @name`.
 
-- **Ровно один инстанс процесса.** Все входящие команды идут через
-  single-writer очередь (`queue_worker.py`) — запись в state store и
-  перерисовка канваса(ов) выполняются как один атомарный шаг. Больше одного
-  инстанса/реплики — гонки за канвас.
-- State store (`data/state.json`) — источник истины, канвас(ы) — просто
-  вьюха, перерисовывается целиком из стейта при каждом изменении.
+## 🖼 The Canvas
 
-## Slack App: необходимые скоупы/настройки
+Two tables: active AFKs (sorted ascending by "Back in") and "**Back in
+business:**" — people who already returned, kept as history rather than
+deleted (sorted descending by how long ago they returned). If someone goes
+AFK again later the same day, it's a new row, not an overwrite of the old
+one. All entries — active and returned — are cleared once a day
+(`DAILY_CLEANUP_HOUR`/`DAILY_CLEANUP_MINUTE`, in `TIMEZONE`; defaults to
+4:00 UTC). The Canvas re-renders every minute on the `:00` boundary, plus
+immediately on any event (`/afk`, `/afk back`, button clicks).
 
-См. также `slack-app-manifest.yml` — актуальный источник правды по скоупам
-(редактор манифеста в вебе Slack может ломать отступы при вставке — проще
-вносить точечно через UI: OAuth & Permissions / Interactivity & Shortcuts /
-Slash Commands).
+Times are shown in each person's own timezone with its abbreviation (e.g.
+`16:13 MSK`), never the server's local time. Names shown are the Slack
+display name / real name, not the account handle. The Canvas content itself
+is always in English regardless of each user's chosen bot language — it's a
+shared view, not a personal one.
 
-- Socket Mode включён, App-Level Token с `connections:write`
-- Interactivity включена (нужна для кнопки "Вернулся" в напоминании)
+## 🌍 Localization
+
+Command replies and DMs are localized per user: the default is the language
+of that user's own Slack client, overridable with `/afk lang`. Six locales
+ship out of the box — Russian, English, Polish, Ukrainian, Belarusian,
+Spanish — including correct Slavic pluralization (one/few/many forms) and
+grammatical case for duration phrases (e.g. "за 41 минуту" vs "за 45
+минут").
+
+## 🏗 Architectural invariants
+
+- **Exactly one running instance.** Every incoming command goes through a
+  single-writer queue (`queue_worker.py`) — the state-store write and the
+  Canvas re-render happen as one atomic step. Running more than one
+  instance/replica would race on the Canvas.
+- The JSON state store (`data/state.json`) is the source of truth; the
+  Canvas is just a view, fully re-rendered from state on every change.
+- A watchdog hard-exits the process if the queue worker is stuck on a single
+  job for more than 3 minutes (covers hangs that don't respond to
+  cancellation, e.g. a poisoned connection pool after a network blip) —
+  paired with Docker's `restart: unless-stopped`, this makes the bot
+  self-heal within minutes instead of requiring a manual restart.
+
+## 🔧 Slack App setup
+
+See `slack-app-manifest.yml` for the source of truth on scopes and settings
+(the manifest editor in Slack's web UI can mangle indentation on paste —
+it's more reliable to configure these by hand: OAuth & Permissions /
+Interactivity & Shortcuts / Slash Commands).
+
+- Socket Mode enabled, with an App-Level Token that has `connections:write`
+- Interactivity enabled (needed for the reminder buttons)
 - Bot Token Scopes: `commands`, `canvases:write`, `chat:write`, `users:read`
-- Slash-команда: `/afk`, с включённым "Escape channels, users, and links sent
-  to your app" (нужно для `/afk wait @user` — иначе Slack не развернёт
-  `@user` в `<@ID>`, и бота будет не с кем связать упоминание)
+- Slash command `/afk`, with "Escape channels, users, and links sent to
+  your app" enabled (needed for `/afk wait @user` — otherwise Slack won't
+  expand `@user` into `<@ID>` and the bot can't resolve the mention)
 
-При добавлении новых скоупов в уже установленное приложение нужно заново
-нажать **Install to Workspace** — токен `SLACK_BOT_TOKEN` при этом меняется.
+After adding new scopes to an already-installed app, you need to click
+**Install to Workspace** again — this rotates `SLACK_BOT_TOKEN`.
 
-## Настройка
+## ⚙️ Configuration
 
 ```bash
 cp .env.example .env
-# заполнить SLACK_BOT_TOKEN, SLACK_APP_TOKEN, SLACK_SIGNING_SECRET, CANVAS_IDS
+# fill in SLACK_BOT_TOKEN, SLACK_APP_TOKEN, SLACK_SIGNING_SECRET, CANVAS_IDS
 ```
 
-`CANVAS_IDS` — список ID канвасов через запятую. ID канваса — последний
-сегмент его ссылки: "Open canvas in new tab" / поделиться ссылкой на канвас →
-`https://<workspace>.slack.com/docs/<TEAM_ID>/<CANVAS_ID>`.
+`CANVAS_IDS` is a comma-separated list of Canvas IDs. A Canvas's ID is the
+last segment of its link (Open canvas in new tab / share link on the
+Canvas): `https://<workspace>.slack.com/docs/<TEAM_ID>/<CANVAS_ID>`.
 
-## Запуск локально
+## 🖥 Running locally
 
 ```bash
 pip install -r requirements.txt
 PYTHONPATH=src python -m afk_bot.app
 ```
 
-## Деплой (Docker)
+## 🐳 Deployment (Docker)
 
 ```bash
 docker compose up -d --build
 ```
 
-`docker-compose.yml` держит один реплик — не увеличивать `--scale`, это сломает
-no-race гарантию очереди.
+`docker-compose.yml` runs a single replica — don't scale it up, that would
+break the queue's no-race guarantee.
 
-## См. также
+## 📄 License
 
-Полный design doc: `workspace/afk-bot-design-v20260703.md` в родительском
-рабочем каталоге разработчика (не часть этого репозитория).
+MIT — see [LICENSE](LICENSE).
