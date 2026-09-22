@@ -17,3 +17,7 @@ class Config:
     DAILY_CLEANUP_HOUR = int(os.environ.get("DAILY_CLEANUP_HOUR", "4"))
     DAILY_CLEANUP_MINUTE = int(os.environ.get("DAILY_CLEANUP_MINUTE", "0"))
     DEFAULT_LOCALE = os.environ.get("DEFAULT_LOCALE", "ru")
+    # Optional liveness heartbeat: an Uptime Kuma "push" monitor URL that the bot
+    # GETs once a minute. Empty/unset disables the heartbeat entirely.
+    HEARTBEAT_URL = os.environ.get("HEARTBEAT_URL", "").strip()
+    HEARTBEAT_INTERVAL_SECONDS = int(os.environ.get("HEARTBEAT_INTERVAL_SECONDS", "60"))
