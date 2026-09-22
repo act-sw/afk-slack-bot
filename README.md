@@ -140,6 +140,20 @@ cp .env.example .env
 last segment of its link (Open canvas in new tab / share link on the
 Canvas): `https://<workspace>.slack.com/docs/<TEAM_ID>/<CANVAS_ID>`.
 
+
+### Liveness heartbeat (optional)
+
+The bot has no HTTP surface, so the only way an external monitor can tell
+"running" from "wedged" is a heartbeat the bot sends itself. Set
+`HEARTBEAT_URL` to an [Uptime Kuma](https://github.com/louislam/uptime-kuma)
+*push* monitor URL (`https://<kuma>/api/push/<token>?status=up&msg=ok`) and
+the bot will GET it every `HEARTBEAT_INTERVAL_SECONDS` (default 60). Make the
+monitor's heartbeat window at least twice the interval and set its retries to
+0 - a missed beat then raises an alert directly instead of passing through a
+"pending" state that suppresses the recovery notification. The heartbeat job
+deliberately bypasses the single-writer queue, so a stuck queue shows up as a
+missing heartbeat. Leave `HEARTBEAT_URL` empty to disable.
+
 ## 🖥 Running locally
 
 ```bash

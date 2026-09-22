@@ -9,7 +9,7 @@ from afk_bot.config import Config
 from afk_bot.handlers import register_handlers
 from afk_bot.preferences import PreferencesStore
 from afk_bot.queue_worker import SingleWriterQueue
-from afk_bot.scheduler import start_daily_cleanup, start_overdue_checker
+from afk_bot.scheduler import start_daily_cleanup, start_heartbeat, start_overdue_checker
 from afk_bot.state import StateStore
 from afk_bot.watchers import WatchersStore
 
@@ -46,6 +46,7 @@ async def main() -> None:
         app.client,
         config.CANVAS_IDS,
     )
+    start_heartbeat(scheduler, config.HEARTBEAT_URL, config.HEARTBEAT_INTERVAL_SECONDS)
     scheduler.start()
 
     handler = AsyncSocketModeHandler(app, config.SLACK_APP_TOKEN)

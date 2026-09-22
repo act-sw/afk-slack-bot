@@ -1,8 +1,11 @@
 import dataclasses
+import logging
 from datetime import datetime
 
+import aiohttp
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
 from slack_sdk.web.async_client import AsyncWebClient
 
 from afk_bot.canvas_renderer import fmt_time, render_and_push
@@ -99,4 +102,36 @@ def start_overdue_checker(
         trigger=CronTrigger(second=0),
         id="afk_overdue_checker",
         replace_existing=True,
+    )
+
+
+def start_heartbeat(scheduler: AsyncIOScheduler, url: str, interval_seconds: int = 60) -> None:
+    """Ping an external liveness monitor (Uptime Kuma push URL) on a fixed interval.
+
+    Runs outside the single-writer queue on purpose: the heartbeat must keep
+    going even if the queue is wedged, so that a stuck queue shows up as a
+    missing heartbeat rather than being masked by it. Failures are logged and
+    swallowed - monitoring must never take the bot down.
+    """
+    if not url:
+        return
+
+    log = logging.getLogger(__name__)
+
+    async def heartbeat_job():
+        try:
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
+                async with session.get(url) as response:
+                    if response.status >= 400:
+                        log.warning("heartbeat: monitor returned HTTP %s", response.status)
+        except Exception as exc:  # noqa: BLE001 - deliberately broad, see docstring
+            log.warning("heartbeat: %s", exc)
+
+    scheduler.add_job(
+        heartbeat_job,
+        trigger=IntervalTrigger(seconds=interval_seconds),
+        id="afk_heartbeat",
+        replace_existing=True,
+        max_instances=1,
+        coalesce=True,
     )
