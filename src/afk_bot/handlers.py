@@ -205,6 +205,7 @@ def register_handlers(
         await respond(t(profile["locale"], "help_text"))
 
     @app.command("/afk")
+    @app.command("/афк")
     async def handle_afk_command(ack, command, client, respond):
         await ack()
         text = command["text"].strip()
