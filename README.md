@@ -46,7 +46,7 @@ Slack app with a bot token and an app-level token.
   read as hours and `N > 12` as minutes; an explicit unit overrides that
   guess — `h`/`hr`/`hour`, `ч`/`час`, `год`/`година` (Ukrainian "год" is an
   hour, not a year!), `godz`/`godzina`, `hora` for hours, `m`/`min`/`minute`,
-  `мин`, `хв`/`хвилина`, `minut`/`minuta` for minutes. Fractional values are
+  `м`/`мин`, `хв`/`хвилина`, `minut`/`minuta` for minutes. Fractional values are
   accepted (`,` or `.` as the decimal separator) and round up to a whole
   minute. Everything after the number (and unit, if recognized) becomes a
   free-form comment. With no number at all, it's an open-ended AFK and the
@@ -82,7 +82,7 @@ either command, the keywords can also be typed in ru/uk/be/pl/es:
 | English | Localized |
 |---|---|
 | `until` | `до` (ru/uk), `да` (be), `do` (pl), `hasta` (es) |
-| `back` | `назад`, `вернулся`/`вернулась`, `повернувся`/`повернулася`, `вярнуўся`/`вярнулася`, `wróciłem`/`wróciłam`, `volví` |
+| `back` | `вернулся`/`вернулась`, `повернувся`/`повернулася`, `вярнуўся`/`вярнулася`, `wróciłem`/`wróciłam`, `volví` |
 | `lang` | `язык`, `мова`, `język`, `idioma` |
 | `format` | `формат`, `фармат`, `formato` |
 | `wait` | `жду`, `чекаю`, `чакаю`, `czekam`, `espero` |

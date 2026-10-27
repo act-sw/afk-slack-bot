@@ -12,8 +12,8 @@ features:
       usage_hint: "N|until <time> [comment] | back | lang [code] | format [12|24] | wait @user | help"
       should_escape: true
     - command: /афк
-      description: "То же, что /afk. /афк N [комментарий] | /афк до 14:00 [комментарий] | /афк назад | /афк язык ru|en|pl|uk|be|es | /афк формат 12|24 | /афк жду @имя | /афк помощь"
-      usage_hint: "N|до <время> [комментарий] | назад | язык [код] | формат [12|24] | жду @имя | помощь"
+      description: "То же, что /afk. /афк N [комментарий] | /афк до 14:00 [комментарий] | /афк вернулся | /афк язык ru|en|pl|uk|be|es | /афк формат 12|24 | /афк жду @имя | /афк помощь"
+      usage_hint: "N|до <время> [комментарий] | вернулся | язык [код] | формат [12|24] | жду @имя | помощь"
       should_escape: true
   interactivity:
     is_enabled: true

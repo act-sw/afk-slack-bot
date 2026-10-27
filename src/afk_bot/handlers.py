@@ -24,7 +24,7 @@ _MENTION_RE = re.compile(r"<@([A-Z0-9]+)(?:\|[^>]*)?>")
 # Localized subcommand words (ru/uk/be/pl/es) mapped to the canonical English
 # subcommand. Kept to words unlikely to start a free-form AFK comment.
 _SUBCOMMAND_ALIASES = {
-    "назад": "back", "вернулся": "back", "вернулась": "back",
+    "вернулся": "back", "вернулась": "back",
     "повернувся": "back", "повернулася": "back",
     "вярнуўся": "back", "вярнулася": "back",
     "wróciłem": "back", "wróciłam": "back", "volví": "back", "volvi": "back",
