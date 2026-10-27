@@ -60,6 +60,8 @@ Slack app with a bot token and an app-level token.
   12-hour readings comes soonest (`until 2` at 10:00 means 14:00 today; the
   same command at 15:00 means 02:00 the next day, since 14:00 has already
   passed).
+- `/afk until eod [comment]` (or just `eod`, `until end of day`) — away
+  until 20:00 in the user's own timezone, same as `/afk until 20:00`.
 - `/afk back` — mark your return.
 - `/afk lang [ru|en|pl|uk|be|es]` — set the bot's reply language for you
   (no argument shows the current one).
@@ -82,6 +84,7 @@ either command, the keywords can also be typed in ru/uk/be/pl/es:
 | English | Localized |
 |---|---|
 | `until` | `до` (ru/uk), `да` (be), `do` (pl), `hasta` (es) |
+| `until eod` | `до вечера`/`до конца дня`, `до вечора`/`до кінця дня`, `да вечара`/`да канца дня`, `do wieczora`/`do końca dnia`, `hasta la noche`/`hasta la tarde`/`hasta el final del día` |
 | `back` | `тут`/`здесь` (only on their own), `вернулся`/`вернулась`, `повернувся`/`повернулася`, `вярнуўся`/`вярнулася`, `wróciłem`/`wróciłam`, `volví` |
 | `lang` | `язык`, `мова`, `język`, `idioma` |
 | `format` | `формат`, `фармат`, `formato` |

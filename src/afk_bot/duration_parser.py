@@ -9,6 +9,19 @@ _UNTIL_RE = re.compile(
 # A bare "H:MM" (with colon) is unambiguously a clock time even without the
 # "until" keyword — a plain duration number never contains a colon.
 _BARE_CLOCK_RE = re.compile(r"^(\d{1,2}):(\d{2})\s*(am|pm)?", re.IGNORECASE)
+# "Until end of day / evening" in every supported language — resolved to
+# _EOD_HOUR in the user's own timezone, exactly like "until 20:00".
+_EOD_RE = re.compile(
+    r"^(?:"
+    r"(?:until\s+)?(?:eod|end\s+of\s+(?:the\s+)?day)|until\s+(?:evening|tonight)"
+    r"|до\s+(?:вечера|вечора|конца\s+дня|кінця\s+дня)"
+    r"|да\s+(?:вечара|канца\s+дня)"
+    r"|do\s+(?:wieczora|ko[nń]ca\s+dnia)"
+    r"|hasta\s+(?:la\s+noche|la\s+tarde|el\s+(?:final|fin)\s+del\s+d[ií]a)"
+    r")(?=\s|$)",
+    re.IGNORECASE,
+)
+_EOD_HOUR = 20
 _NUMBER_RE = re.compile(r"\d+(?:[.,]\d+)?")
 _UNIT_WORD_RE = re.compile(r"^\s*([A-Za-zА-Яа-яЁёІіЇїЄєҐґ]+)")
 
@@ -83,6 +96,8 @@ def parse_afk_text(text: str, now: datetime) -> tuple[datetime | None, str]:
       A bare "H:MM" (e.g. "23:55", "2:30pm") is recognized as a clock time
       the same way even without the "until" keyword, since a plain duration
       number never contains a colon.
+    - "until eod" / "eod" / "до вечера" / "до конца дня" (and the uk/be/pl/es
+      equivalents) mean until 20:00 — the same as "until 20:00".
     - Otherwise, the first number in the text is the duration. An explicit
       unit right after it (attached or space-separated — "h"/"hr"/"час"/
       "година"/"год"/... for hours, "m"/"min"/"мин"/"хв"/... for minutes)
@@ -96,6 +111,10 @@ def parse_afk_text(text: str, now: datetime) -> tuple[datetime | None, str]:
     text = text.strip()
     if not text:
         return None, ""
+
+    eod_match = _EOD_RE.match(text)
+    if eod_match:
+        return _resolve_until(now, _EOD_HOUR, 0, None), text[eod_match.end() :].strip()
 
     until_match = _UNTIL_RE.match(text)
     if until_match:
