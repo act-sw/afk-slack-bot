@@ -24,7 +24,7 @@ _MENTION_RE = re.compile(r"<@([A-Z0-9]+)(?:\|[^>]*)?>")
 # Localized subcommand words (ru/uk/be/pl/es) mapped to the canonical English
 # subcommand. Kept to words unlikely to start a free-form AFK comment.
 _SUBCOMMAND_ALIASES = {
-    "вернулся": "back", "вернулась": "back",
+    "тут": "back", "здесь": "back", "вернулся": "back", "вернулась": "back",
     "повернувся": "back", "повернулася": "back",
     "вярнуўся": "back", "вярнулася": "back",
     "wróciłem": "back", "wróciłam": "back", "volví": "back", "volvi": "back",
@@ -34,6 +34,7 @@ _SUBCOMMAND_ALIASES = {
     "помощь": "help", "справка": "help", "допомога": "help", "довідка": "help",
     "дапамога": "help", "pomoc": "help", "ayuda": "help",
 }
+_BACK_ONLY_ALONE = {"тут", "здесь"}
 
 
 async def _fetch_user_profile(client, user_id: str, default_locale: str, prefs: PreferencesStore) -> dict:
@@ -228,6 +229,10 @@ def register_handlers(
         # A localized "wait" word without any mention is far more likely the
         # start of a free-form comment ("/afk жду курьера") than a wait request.
         if subcommand == "wait" and first_word.lower() != "wait" and not _MENTION_RE.search(rest):
+            subcommand = ""
+        # "тут"/"здесь" mean "I'm back" only on their own; followed by more text
+        # they start a comment ("/afk здесь буду через час").
+        if first_word.lower() in _BACK_ONLY_ALONE and rest.strip():
             subcommand = ""
 
         if subcommand == "back":

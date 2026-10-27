@@ -82,7 +82,7 @@ either command, the keywords can also be typed in ru/uk/be/pl/es:
 | English | Localized |
 |---|---|
 | `until` | `до` (ru/uk), `да` (be), `do` (pl), `hasta` (es) |
-| `back` | `вернулся`/`вернулась`, `повернувся`/`повернулася`, `вярнуўся`/`вярнулася`, `wróciłem`/`wróciłam`, `volví` |
+| `back` | `тут`/`здесь` (only on their own), `вернулся`/`вернулась`, `повернувся`/`повернулася`, `вярнуўся`/`вярнулася`, `wróciłem`/`wróciłam`, `volví` |
 | `lang` | `язык`, `мова`, `język`, `idioma` |
 | `format` | `формат`, `фармат`, `formato` |
 | `wait` | `жду`, `чекаю`, `чакаю`, `czekam`, `espero` |
