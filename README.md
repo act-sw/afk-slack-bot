@@ -22,7 +22,8 @@ Slack app with a bot token and an app-level token.
 ## ✨ Features
 
 - **One command, several subcommands**: `/afk`, `/afk back`, `/afk lang`,
-  `/afk format`, `/afk wait`, `/afk help`.
+  `/afk format`, `/afk wait`, `/afk help` — plus a Cyrillic `/афк` alias and
+  localized keywords (see [Localized keywords](#-localized-keywords)).
 - **Flexible duration parsing**: `/afk 1.5`, `/afk 90`, `/afk 13h`,
   `/afk until 14:00`, or an open-ended `/afk lunch` with no time at all.
 - **Per-user locale and time format**: language defaults to the user's own
@@ -71,6 +72,25 @@ Slack app with a bot token and an app-level token.
 Examples: `/afk 1.5 lunch` · `/afk 90` · `/afk 13h` · `/afk until 14` ·
 `/afk until 2pm` · `/afk back` · `/afk lang en` · `/afk format 12` ·
 `/afk wait @name`.
+
+### 🔤 Localized keywords
+
+`/афк` is a second slash command routed to the same handler (it has to be
+created in the Slack app settings too — see `slack-app-manifest.yml`). With
+either command, the keywords can also be typed in ru/uk/be/pl/es:
+
+| English | Localized |
+|---|---|
+| `until` | `до` (ru/uk), `да` (be), `do` (pl), `hasta` (es) |
+| `back` | `назад`, `вернулся`/`вернулась`, `повернувся`/`повернулася`, `вярнуўся`/`вярнулася`, `wróciłem`/`wróciłam`, `volví` |
+| `lang` | `язык`, `мова`, `język`, `idioma` |
+| `format` | `формат`, `фармат`, `formato` |
+| `wait` | `жду`, `чекаю`, `чакаю`, `czekam`, `espero` |
+| `help` | `помощь`, `справка`, `допомога`, `довідка`, `дапамога`, `pomoc`, `ayuda` |
+
+A localized `wait` word is treated as a wait request only when followed by
+at least one `@mention`; otherwise it's the start of a regular AFK comment
+(`/афк жду курьера` marks you away with that comment).
 
 ## 🖼 The Canvas
 

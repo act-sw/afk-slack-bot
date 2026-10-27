@@ -21,6 +21,20 @@ EXTENSION_MINUTES = 30
 _LANGUAGE_OPTIONS = ", ".join(SUPPORTED_LOCALES)
 _MENTION_RE = re.compile(r"<@([A-Z0-9]+)(?:\|[^>]*)?>")
 
+# Localized subcommand words (ru/uk/be/pl/es) mapped to the canonical English
+# subcommand. Kept to words unlikely to start a free-form AFK comment.
+_SUBCOMMAND_ALIASES = {
+    "назад": "back", "вернулся": "back", "вернулась": "back",
+    "повернувся": "back", "повернулася": "back",
+    "вярнуўся": "back", "вярнулася": "back",
+    "wróciłem": "back", "wróciłam": "back", "volví": "back", "volvi": "back",
+    "язык": "lang", "мова": "lang", "język": "lang", "jezyk": "lang", "idioma": "lang",
+    "формат": "format", "фармат": "format", "formato": "format",
+    "жду": "wait", "чекаю": "wait", "чакаю": "wait", "czekam": "wait", "espero": "wait",
+    "помощь": "help", "справка": "help", "допомога": "help", "довідка": "help",
+    "дапамога": "help", "pomoc": "help", "ayuda": "help",
+}
+
 
 async def _fetch_user_profile(client, user_id: str, default_locale: str, prefs: PreferencesStore) -> dict:
     info = (await client.users_info(user=user_id, include_locale=True))["user"]
@@ -210,7 +224,11 @@ def register_handlers(
         await ack()
         text = command["text"].strip()
         first_word, _, rest = text.partition(" ")
-        subcommand = first_word.lower()
+        subcommand = _SUBCOMMAND_ALIASES.get(first_word.lower(), first_word.lower())
+        # A localized "wait" word without any mention is far more likely the
+        # start of a free-form comment ("/afk жду курьера") than a wait request.
+        if subcommand == "wait" and first_word.lower() != "wait" and not _MENTION_RE.search(rest):
+            subcommand = ""
 
         if subcommand == "back":
             await do_back(command, client, respond)

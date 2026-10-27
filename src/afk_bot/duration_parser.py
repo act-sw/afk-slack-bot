@@ -3,7 +3,7 @@ import re
 from datetime import datetime, timedelta
 
 _UNTIL_RE = re.compile(
-    r"^(?:until|до)\s+(?:(\d{2})(\d{2})|(\d{1,2}):(\d{2})|(\d{1,2}))\s*(am|pm)?",
+    r"^(?:until|до|да|do|hasta)\s+(?:(\d{2})(\d{2})|(\d{1,2}):(\d{2})|(\d{1,2}))\s*(am|pm)?",
     re.IGNORECASE,
 )
 # A bare "H:MM" (with colon) is unambiguously a clock time even without the
@@ -75,8 +75,8 @@ def parse_afk_text(text: str, now: datetime) -> tuple[datetime | None, str]:
     `now` must be timezone-aware in the calling user's own timezone — "until"
     times are resolved against it directly.
 
-    - "until" (or Cyrillic "до") accepts "14", "1400", "14:00", or 12-hour
-      "2pm"/"2:00am".
+    - "until" (or its ru/uk "до", be "да", pl "do", es "hasta") accepts "14",
+      "1400", "14:00", or 12-hour "2pm"/"2:00am".
       Without an am/pm suffix, an hour in 1-12 is ambiguous: it resolves to
       whichever of the two 12-hour readings is soonest (e.g. "until 2" is
       14:00 today if that hasn't passed yet, else 02:00 the next occurrence).
